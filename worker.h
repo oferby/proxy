@@ -13,6 +13,7 @@ class Worker {
 
         Worker(std::string name);
         void start(std::function<void()> thread_func);
+        void join();
 
 
 };

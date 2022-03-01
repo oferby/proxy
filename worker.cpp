@@ -20,3 +20,7 @@ void Worker::start(std::function<void()> thread_func) {
     }
 
 }
+
+void Worker::join() {
+    pthread_join(worker_thread, nullptr);
+}
