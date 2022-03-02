@@ -9,15 +9,15 @@ TcpListener::TcpListener(addr_info info) {
     
     info_ = info;
 
-    sd_ = socket(AF_INET, SOCK_STREAM, 0);
-    if ( sd_ == -1) {
+    int sd = socket(AF_INET, SOCK_STREAM, 0);
+    if ( sd == -1) {
         perror("could not create socket");
         exit(EXIT_FAILURE);
 
     }
     
     int optval = 1;
-    setsockopt(sd_, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+    setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
     sockaddr_in server {0};
     auto addrlen = sizeof(server);
@@ -25,24 +25,26 @@ TcpListener::TcpListener(addr_info info) {
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(info.port);
 
-    int status = bind(sd_, (sockaddr*) &server, addrlen);
+    int status = bind(sd, (sockaddr*) &server, addrlen);
     if (status != 0) {
         perror("could not bind to socket");
         exit(EXIT_FAILURE);
     }
 
-    status = listen(sd_, 1);
+    status = listen(sd, 1);
     if (status != 0) {
         perror("could not listen to socket");
         exit(EXIT_FAILURE);
     }
 
-    puts("listener listening");
+    sd_ = Network::create_socket(sd);
+    
+    printf("listener listening on port %i", info.port);
 
 }
 
 
-int TcpListener::get_socket() {
+Network::SocketPtr TcpListener::get_socket() {
     return sd_;
 }
 
@@ -51,7 +53,7 @@ void TcpListener::onConnect() {
 }
 
 TcpListenerPtr create_tcp_listener(addr_info info) {
-    return std::make_unique<TcpListener>(info);
+    return std::make_shared<TcpListener>(info);
 }
 
 

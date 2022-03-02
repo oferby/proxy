@@ -1,10 +1,12 @@
 #ifndef TCP_LISTENER
 #define TCP_LISTENER
 
+#include "listener.h" 
+#include "Socket.h"
+
 #include <string>
 #include <sys/socket.h> 
 #include <netinet/in.h>
-#include "listener.h" 
 #include <memory>
 
 namespace Network {
@@ -19,16 +21,16 @@ struct addr_info {
 class TcpListener : public Network::Listener {
 private:
     addr_info info_;
-    int sd_;
+    Network::SocketPtr sd_;
 
 public:
     TcpListener(addr_info info);
-    int get_socket();
+    Network::SocketPtr get_socket();
     void onConnect();
 
 };
 
-using TcpListenerPtr = std::unique_ptr<TcpListener>;
+using TcpListenerPtr = std::shared_ptr<TcpListener>;
 
 TcpListenerPtr create_tcp_listener(addr_info info);
 

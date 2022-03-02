@@ -15,7 +15,6 @@ void Worker::start() {
 
     int status = pthread_create(&worker_thread, nullptr, 
         [](void* arg) -> void* {
-
             static_cast<Worker*>(arg)->run();
             return nullptr;
         }, 

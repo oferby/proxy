@@ -23,7 +23,7 @@ class EventScheduler {
     public:
         EventScheduler();
         void run();
-        void register_for_event(int fd, OnEventCallback cb);
+        void register_for_event(int fd, OnEventCallback cb, void* arg);
         void unregister_for_event(int fd);
        
 
@@ -31,7 +31,7 @@ class EventScheduler {
 
 void initialize(); 
 
-using EventSchedulerPtr = ::std::unique_ptr<EventScheduler>;
+using EventSchedulerPtr = std::unique_ptr<EventScheduler>;
 
 EventSchedulerPtr create_event_scheduler(); 
 
