@@ -1,5 +1,9 @@
-#include <common.h>
-#include <event_scheduler.h>
+#ifndef WORKER
+#define WORKER
+
+#include "common.h"
+#include "dispatcher.h"
+#include <vector>
 
 
 class Worker {
@@ -8,11 +12,14 @@ class Worker {
         std::string name;
         pthread_t worker_thread;
         std::function<void()> thread_func_;
+        Event::DispatcherPtr dispatcher_;
+        void run();
 
     public:
 
         Worker(std::string name);
-        void start(std::function<void()> thread_func);
+        void add_listener(Network::Tcp::addr_info info);
+        void start();
         void join();
 
 
@@ -20,8 +27,6 @@ class Worker {
 
 
 using WorkerPtr = std::unique_ptr<Worker>;
+WorkerPtr get_worker(std::string name);
 
-
-WorkerPtr get_worker(std::string name) {
-    return std::make_unique<Worker>(name);
-}
+#endif

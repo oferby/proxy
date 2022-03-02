@@ -1,9 +1,11 @@
-#include <event_scheduler.h>
+#include "event_scheduler.h"
 
 
-namespace Events{ 
+namespace Event { 
 
 EventScheduler::EventScheduler() {
+
+    puts("creating scheduler");
 
     base_ = event_base_new();
     if (!base_) {
@@ -13,7 +15,6 @@ EventScheduler::EventScheduler() {
 
 
 };
-
 
 void EventScheduler::register_for_event(int fd, OnEventCallback cb) {
 
@@ -35,6 +36,13 @@ void EventScheduler::run() {
     event_base_loop(base_, flags);
 }
 
+void initialize() {
+    evthread_use_pthreads();
+}
+
+EventSchedulerPtr create_event_scheduler() {
+    return ::std::make_unique<EventScheduler>();
+}
 
 
-} //namespace Events
+} //namespace Event
