@@ -7,7 +7,7 @@ Worker::Worker(std::string name) {
 
     this->name = name;
     
-    dispatcher_ = Event::create_dispatcher();
+    dispatcher_ = Event::Dispatcher::getInstance();
 
 }
 
@@ -30,7 +30,6 @@ void Worker::run() {
 
     dispatcher_->run();
 
-
 }
 
 
@@ -38,7 +37,7 @@ void Worker::join() {
     pthread_join(worker_thread, nullptr);
 }
 
-void Worker::add_listener(Network::Tcp::addr_info info) {
+void Worker::add_listener(Network::addr_info info) {
     // listeners.push_back(Network::Tcp::create_tcp_listener(info));
     dispatcher_->add_listener(info);
 }

@@ -18,7 +18,7 @@ class Worker {
     public:
 
         Worker(std::string name);
-        void add_listener(Network::Tcp::addr_info info);
+        void add_listener(Network::addr_info info);
         void start();
         void join();
 

@@ -3,11 +3,10 @@
 namespace Network {
 namespace Tcp {
 
-TcpListener::TcpListener(addr_info info) {
+TcpListener::TcpListener(Network::addr_info info, Event::DispatcherBasePtr dispatcher, Network::ConnectionManagerPtr connection_manager) 
+    :info_(info), dispatcher_(dispatcher), connection_manager_(connection_manager) {
 
     puts("creating new tcp listener");
-    
-    info_ = info;
 
     int sd = socket(AF_INET, SOCK_STREAM, 0);
     if ( sd == -1) {
@@ -37,23 +36,20 @@ TcpListener::TcpListener(addr_info info) {
         exit(EXIT_FAILURE);
     }
 
-    sd_ = Network::create_socket(sd);
+    sd_ = Network::create_socket(sd, std::static_pointer_cast<ConnectionManagerBase>(connection_manager_));
     
-    printf("listener listening on port %i", info.port);
+    printf("listener listening on port %i\n", info.port);
 
 }
 
 
-Network::SocketPtr TcpListener::get_socket() {
-    return sd_;
+Network::SocketBasePtr TcpListener::get_socket() {
+    return std::static_pointer_cast<Network::SocketBase>(sd_);
 }
 
-void TcpListener::onConnect() {
-    puts("got new connection.");
-}
-
-TcpListenerPtr create_tcp_listener(addr_info info) {
-    return std::make_shared<TcpListener>(info);
+TcpListenerPtr create_tcp_listener(Network::addr_info info, Event::DispatcherBasePtr dispatcher,
+    Network::ConnectionManagerPtr connection_manager) {
+    return std::make_shared<TcpListener>(info, dispatcher, connection_manager);
 }
 
 
