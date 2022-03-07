@@ -11,7 +11,7 @@
 namespace Event {
 
 
-class Dispatcher : public DispatcherBase, public std::enable_shared_from_this<Event::Dispatcher> {
+class Dispatcher : public DispatcherBase, public std::enable_shared_from_this<Event::DispatcherBase> {
 public:
 
     static std::shared_ptr<Dispatcher> getInstance() {

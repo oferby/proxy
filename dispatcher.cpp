@@ -12,7 +12,7 @@ Dispatcher::Dispatcher() {
 void Dispatcher::add_listener(Network::addr_info info) {
     
     Network::Tcp::TcpListenerPtr listener = Network::Tcp::create_tcp_listener(info, 
-        std::static_pointer_cast<DispatcherBase>(shared_from_this()),
+        shared_from_this(),
         connection_manager_);
     listeners_.push_back(listener);
 

@@ -35,6 +35,7 @@ class EventScheduler {
         void run();
         void register_for_event(int fd, OnEventCallback cb, void* arg);
         void unregister_for_event(int fd);
+        void make_nonblocking(int fd);
 
 };
 

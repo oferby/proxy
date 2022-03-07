@@ -34,8 +34,8 @@ namespace Network {
 
     class ConnectionManagerBase {
     public:
-        virtual Connection::ConnectionBasePtr create_connection(int sd) PURE;
-        // virtual void close_connection(Connection::ConnectionBasePtr connection) PURE;
+        virtual void create_connection(int sd) PURE;
+        virtual void close_connection(int sd) PURE;
     };
     using ConnectionManagerBasePtr = std::shared_ptr<ConnectionManagerBase>;
 

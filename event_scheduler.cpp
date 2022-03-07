@@ -19,6 +19,10 @@ void EventScheduler::unregister_for_event(int fd) {
     event_map.erase(fd);
 }
 
+void EventScheduler::make_nonblocking(int fd) {
+    evutil_make_socket_nonblocking(fd);
+}
+
 
 void EventScheduler::run() {
     puts("running event loop");

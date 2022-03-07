@@ -8,11 +8,11 @@
 namespace Network {
 
 
-class ConnectionManager : public ConnectionManagerBase {
+class ConnectionManager : public ConnectionManagerBase, public std::enable_shared_from_this<ConnectionManagerBase> {
 public:
     ConnectionManager(Event::EventSchedulerPtr event_scheduler);
-    Connection::ConnectionBasePtr create_connection(int sd);
-    // void close_connection(Connection::ConnectionBasePtr connection) override;
+    void create_connection(int sd) override;
+    void close_connection(int sd) override;
 
 private:
     std::map<int,Network::Connection::ConnectionPtr> sock_map;
