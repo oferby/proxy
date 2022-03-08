@@ -50,7 +50,9 @@ int Socket::listen() {
 }
 
 
-int Socket::connect() {
+int Socket::connect(Network::addr_info info) {
+
+    info_ = info;
 
     puts("connecting to server...");
 
@@ -58,25 +60,25 @@ int Socket::connect() {
     auto addrlen = sizeof(server);
 
     if (info_.ip_addr.size() == 0) {
-        server.sin_addr.s_addr = INADDR_ANY;
-    } else {
-        int result = inet_aton(info_.ip_addr.c_str(), &server.sin_addr);
-        if (!result) {
-            perror("invalid server address");
-            exit(EXIT_FAILURE);
-
-        }
+        printf("could not read server address: %s", info_.ip_addr.c_str());
+        exit(EXIT_FAILURE);
     }
 
     server.sin_family = AF_INET;
     server.sin_port = htons(info_.port);
     
-    int status =  ::connect(sd_, (const sockaddr*) &server, sizeof(server));
-    if ( status == -1) {
-        perror("could not connect to server!");
-        exit(EXIT_FAILURE);
+    int status;
+    using namespace std::chrono_literals;
+    while(1) {
+        status =  ::connect(sd_, (const sockaddr*) &server, sizeof(server));
+        if ( status == -1) {
+            perror("could not connect to server! trying ...");
+            std::this_thread::sleep_for(2s);
+        } else {
+            break;
+        }
     }
-
+    
     return status;
 
 }

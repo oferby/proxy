@@ -6,7 +6,7 @@
 #include "network/connection_manager.h"
 #include "tcp/tcp_listener.h"
 #include "event_scheduler.h"
-
+#include "proxy/proxy.h"
 
 namespace Event {
 
@@ -20,14 +20,12 @@ public:
     }
     
     void run();
-    void add_listener(Network::addr_info info);
-    Network::ConnectionManagerPtr get_connection_manager();
+    void new_proxy_config(Network::ProxyConfigPtr config);
+    Network::ConnectionManagerBasePtr get_connection_manager();
     Event::EventSchedulerBasePtr get_event_scheduler() ;
     
 private:
     Dispatcher();
-    // Dispatcher(Dispatcher const&);
-    // void operator=(Dispatcher const&);
     EventSchedulerPtr event_scheduler_;
     Network::ConnectionManagerPtr connection_manager_;
     std::vector<Network::Tcp::TcpListenerPtr> listeners_ = {};

@@ -14,6 +14,7 @@
 #include <memory>
 #include <map>
 #include <vector>
+#include <thread>
 
 #define PURE =0;
 
@@ -63,11 +64,14 @@ namespace Network {
         int port;
     };
 
+    using AddrInfoPtr = std::shared_ptr<addr_info>;
+
     struct proxy_config {
         addr_info source;
         addr_info destination;
     };
 
+    using ProxyConfigPtr = std::shared_ptr<proxy_config>;
 
 } // namespace Network
 
@@ -90,10 +94,10 @@ namespace Event {
     class DispatcherBase {
     public:
         virtual void run() PURE;
-        virtual void add_listener(Network::addr_info info) PURE;
-        virtual Event::EventSchedulerBasePtr get_event_scheduler()  PURE;
-
+        virtual Event::EventSchedulerBasePtr get_event_scheduler() PURE;
+        virtual Network::ConnectionManagerBasePtr get_connection_manager() PURE;
     };
+
     using DispatcherBasePtr = std::shared_ptr<DispatcherBase>;
 
 }; // namespace Event

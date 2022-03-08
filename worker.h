@@ -18,7 +18,7 @@ class Worker {
     public:
 
         Worker(std::string name);
-        void add_listener(Network::addr_info info);
+        void new_proxy_config(Network::ProxyConfigPtr config);
         void start();
         void join();
 

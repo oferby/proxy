@@ -37,8 +37,8 @@ void Worker::join() {
     pthread_join(worker_thread, nullptr);
 }
 
-void Worker::add_listener(Network::addr_info info) {
-    dispatcher_->add_listener(info);
+void Worker::new_proxy_config(Network::ProxyConfigPtr config){
+    dispatcher_->new_proxy_config(config);
 }
 
 WorkerPtr get_worker(std::string name) {

@@ -9,7 +9,7 @@ class Socket : public SocketBase {
 public:
     Socket(ConnectionManagerBasePtr connection_manager, bool is_reuse);
     int get();
-    int connect();
+    int connect(Network::addr_info info);
     int bind(Network::addr_info info);
     int listen();
     int accept();

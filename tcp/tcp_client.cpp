@@ -3,13 +3,12 @@
 namespace Network {
 namespace Tcp {
 
-TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher, 
-    Network::ConnectionManagerPtr connection_manager) : target_(target), 
-    dispatcher_(dispatcher), connection_manager_(connection_manager) {
+TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher) : target_(target), 
+    dispatcher_(dispatcher) {
 
     puts("creating new tcp listener");
 
-    sd_ = Network::create_socket(std::static_pointer_cast<ConnectionManagerBase>(connection_manager_), false);
+    sd_ = Network::create_socket(dispatcher_->get_connection_manager(), false);
 
 };
 
@@ -19,9 +18,11 @@ Network::SocketBasePtr TcpClient::get_socket() {
 
 Connection::ConnectionBasePtr TcpClient::connect() {
 
-    sd_->connect();
+    sd_->connect(target_);
+    
+    puts("connected to upstream server.");
 
-    return connection_manager_->create_connection(sd_->get());
+    return dispatcher_->get_connection_manager()->create_connection(sd_->get());
 
 };
 
@@ -29,5 +30,8 @@ void TcpClient::close() {
     ::close(sd_->get());     
 };
 
+TcpClientPtr create_tcp_client(Network::addr_info target, Event::DispatcherBasePtr dispatcher) {
+    return std::make_shared<TcpClient>(target, dispatcher);
+}
 } // namespace Tcp
 } // namespace Network
