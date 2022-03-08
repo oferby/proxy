@@ -73,16 +73,25 @@ namespace Network {
 
 namespace Event {
     
-    class EventSchedulerBase;
-    
     // typedef void (*OnEventCallback) (int fd, short event, void* arg);
     using OnEventCallback = void (int fd, short event, void* arg); 
-    using EventSchedulerBasePtr = std::shared_ptr<EventSchedulerBase>;
+    
+
+    class EventSchedulerBase {
+    public:
+        virtual void run() PURE;
+        virtual void register_for_event(int fd, OnEventCallback cb, void* arg) PURE;
+        virtual void unregister_for_event(int fd) PURE;
+        virtual void make_nonblocking(int fd) PURE;
+    };
+
+    using EventSchedulerBasePtr = std::shared_ptr<EventSchedulerBase>;   
     
     class DispatcherBase {
     public:
         virtual void run() PURE;
         virtual void add_listener(Network::addr_info info) PURE;
+        virtual Event::EventSchedulerBasePtr get_event_scheduler()  PURE;
 
     };
     using DispatcherBasePtr = std::shared_ptr<DispatcherBase>;

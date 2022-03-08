@@ -22,7 +22,7 @@ public:
     void run();
     void add_listener(Network::addr_info info);
     Network::ConnectionManagerPtr get_connection_manager();
-    EventSchedulerPtr get_event_scheduler();
+    Event::EventSchedulerBasePtr get_event_scheduler() ;
     
 private:
     Dispatcher();

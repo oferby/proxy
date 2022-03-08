@@ -9,7 +9,7 @@
 
 namespace Event {
 
-class EventScheduler {
+class EventScheduler : public EventSchedulerBase {
     private:
         EventScheduler() {
 
@@ -22,7 +22,6 @@ class EventScheduler {
             }
 
         };
-        // EventScheduler(EventScheduler&);
         event_base* base_;
         std::map<int, event*> event_map;
 
