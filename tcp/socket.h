@@ -7,17 +7,22 @@ namespace Network {
 
 class Socket : public SocketBase {
 public:
-    Socket(int sd, ConnectionManagerBasePtr connection_manager);
+    Socket(ConnectionManagerBasePtr connection_manager, bool is_reuse);
     int get();
+    int connect();
+    int bind(Network::addr_info info);
+    int listen();
+    int accept();
     void on_connect();
  
 private:
     int sd_;
+    Network::addr_info info_;
     ConnectionManagerBasePtr connection_manager_;
 };
 
 using SocketPtr = std::shared_ptr<Socket>;
-SocketPtr create_socket(int sd, ConnectionManagerBasePtr connection_manager);
+SocketPtr create_socket(ConnectionManagerBasePtr connection_manager, bool is_reuse);
 
 } // namespace natwork
 

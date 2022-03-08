@@ -4,7 +4,7 @@ namespace Network {
 
 ConnectionManager::ConnectionManager(Event::EventSchedulerPtr event_scheduler) : event_scheduler_(event_scheduler) {};
 
-void ConnectionManager::create_connection(int sd) {
+Connection::ConnectionBasePtr ConnectionManager::create_connection(int sd) {
     
     Connection::ConnectionPtr conn = Connection::create_connection(sd, shared_from_this());
     sock_map[sd] = conn;
@@ -14,6 +14,8 @@ void ConnectionManager::create_connection(int sd) {
     event_scheduler_->register_for_event(sd, [](evutil_socket_t fd, short event, void* arg){
         static_cast<Connection::Connection*>(arg)->on_read();
     }, (void*) conn.get());
+
+    return std::static_pointer_cast<Connection::ConnectionBase>(conn);
 
 }
 

@@ -38,7 +38,6 @@ void Worker::join() {
 }
 
 void Worker::add_listener(Network::addr_info info) {
-    // listeners.push_back(Network::Tcp::create_tcp_listener(info));
     dispatcher_->add_listener(info);
 }
 

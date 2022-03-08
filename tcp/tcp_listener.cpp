@@ -8,37 +8,11 @@ TcpListener::TcpListener(Network::addr_info info, Event::DispatcherBasePtr dispa
 
     puts("creating new tcp listener");
 
-    int sd = socket(AF_INET, SOCK_STREAM, 0);
-    if ( sd == -1) {
-        perror("could not create socket");
-        exit(EXIT_FAILURE);
+    sd_ = Network::create_socket(std::static_pointer_cast<ConnectionManagerBase>(connection_manager_), true);
 
-    }
-    
-    int optval = 1;
-    setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+    sd_->bind(info_);
 
-    sockaddr_in server {0};
-    auto addrlen = sizeof(server);
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(info.port);
-
-    int status = bind(sd, (sockaddr*) &server, addrlen);
-    if (status != 0) {
-        perror("could not bind to socket");
-        exit(EXIT_FAILURE);
-    }
-
-    status = listen(sd, 1);
-    if (status != 0) {
-        perror("could not listen to socket");
-        exit(EXIT_FAILURE);
-    }
-
-    sd_ = Network::create_socket(sd, std::static_pointer_cast<ConnectionManagerBase>(connection_manager_));
-    
-    printf("listener listening on port %i\n", info.port);
+    sd_->listen();
 
 }
 

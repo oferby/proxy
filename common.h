@@ -6,6 +6,8 @@
 
 #include <sys/socket.h> 
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #include <string>
 #include <functional>
@@ -19,6 +21,9 @@
 
 namespace Network {
 
+    using SockAddrInPtr = std::shared_ptr<sockaddr_in>;
+    using SockAddrLen = std::shared_ptr<socklen_t>;
+    
     namespace Connection {
     
     class ConnectionBase {
@@ -34,7 +39,7 @@ namespace Network {
 
     class ConnectionManagerBase {
     public:
-        virtual void create_connection(int sd) PURE;
+        virtual Connection::ConnectionBasePtr create_connection(int sd) PURE;
         virtual void close_connection(int sd) PURE;
     };
     using ConnectionManagerBasePtr = std::shared_ptr<ConnectionManagerBase>;
@@ -56,6 +61,11 @@ namespace Network {
     struct addr_info {
         std::string ip_addr; 
         int port;
+    };
+
+    struct proxy_config {
+        addr_info source;
+        addr_info destination;
     };
 
 

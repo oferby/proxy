@@ -7,11 +7,10 @@
 
 namespace Network {
 
-
 class ConnectionManager : public ConnectionManagerBase, public std::enable_shared_from_this<ConnectionManagerBase> {
 public:
     ConnectionManager(Event::EventSchedulerPtr event_scheduler);
-    void create_connection(int sd) override;
+    Connection::ConnectionBasePtr create_connection(int sd) override;
     void close_connection(int sd) override;
 
 private:
