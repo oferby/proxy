@@ -16,6 +16,8 @@ public:
     void on_read() override;
     void on_write(char* buf, size_t size) override;
     void set_connection_pair(ConnectionBasePtr connection_pair);
+    ConnectionBasePtr get_connection_pair();
+    ~Connection();
 private:
     int sd_;
     ConnectionManagerBasePtr connection_manager_;

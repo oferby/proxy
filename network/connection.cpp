@@ -22,7 +22,7 @@ void Connection::on_read() {
     char* buf_ = buf;
     while (1) {
         result = ::recv(sd_, buf_, sizeof(buf), 0);
-        printf("result: %d\n", result);
+        printf("read result: %d\n", result);
         if (result <= 0)
             break;
         size+=result;
@@ -66,6 +66,17 @@ void Connection::on_close() {
 
 void Connection::set_connection_pair(ConnectionBasePtr connection_pair) {
     connection_pair_ = std::static_pointer_cast<Connection>(connection_pair);
+}
+
+ConnectionBasePtr Connection::get_connection_pair() {
+    if (connection_pair_ == nullptr)
+        return nullptr;
+    
+    return std::static_pointer_cast<ConnectionBase>(connection_pair_);
+}
+
+Connection::~Connection() {
+    puts("connection destroyed.");
 }
 
 ConnectionPtr create_connection(int sd, ConnectionManagerBasePtr connection_manager) {

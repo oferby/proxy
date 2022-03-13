@@ -21,7 +21,16 @@ Connection::ConnectionBasePtr ConnectionManager::create_connection(int sd) {
 
 void ConnectionManager::close_connection(int sd) {
     event_scheduler_->unregister_for_event(sd);
+    auto sock = sock_map[sd];
     sock_map.erase(sd);
+
+    auto connection_pair = sock->get_connection_pair();
+    if (connection_pair != nullptr) {
+        sock_map.erase(connection_pair->get_sock());
+        connection_pair.reset();
+    }
+
+    sock.reset();
 }
 
 ConnectionManagerPtr create_connection_manager(Event::EventSchedulerPtr event_scheduler) {
