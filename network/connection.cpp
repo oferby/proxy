@@ -75,6 +75,11 @@ ConnectionBasePtr Connection::get_connection_pair() {
     return std::static_pointer_cast<ConnectionBase>(connection_pair_);
 }
 
+ void Connection::clear_connection_pair() {
+     ::close(sd_);
+     connection_pair_.reset();
+ }
+
 Connection::~Connection() {
     puts("connection destroyed.");
 }

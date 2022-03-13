@@ -8,26 +8,24 @@ TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatc
 
     puts("creating new tcp listener");
 
-    sd_ = Network::create_socket(dispatcher_->get_connection_manager(), false);
+    
 
 };
 
 Network::SocketBasePtr TcpClient::get_socket() {
-    return std::static_pointer_cast<SocketBase>(sd_);
+
+    auto sd = Network::create_socket(dispatcher_->get_connection_manager(), false);
+    return std::static_pointer_cast<SocketBase>(sd);
 };
 
-Connection::ConnectionBasePtr TcpClient::connect() {
+Connection::ConnectionBasePtr TcpClient::connect(Network::SocketBasePtr sd) {
 
-    sd_->connect(target_);
+    sd->connect(target_);
     
     puts("connected to upstream server.");
 
-    return dispatcher_->get_connection_manager()->create_connection(sd_->get());
+    return dispatcher_->get_connection_manager()->create_connection(sd->get());
 
-};
-
-void TcpClient::close() { 
-    ::close(sd_->get());     
 };
 
 TcpClientPtr create_tcp_client(Network::addr_info target, Event::DispatcherBasePtr dispatcher) {

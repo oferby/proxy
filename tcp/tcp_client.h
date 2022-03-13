@@ -12,14 +12,12 @@ namespace Tcp {
 class TcpClient : public TcpClientBase {
 private:
     Network::addr_info target_;
-    Network::SocketPtr sd_;
     Event::DispatcherBasePtr dispatcher_;
 
 public:
     TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher);
     Network::SocketBasePtr get_socket();
-    Network::Connection::ConnectionBasePtr connect();
-    void close();
+    Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd);
 };
 
 using TcpClientPtr = std::shared_ptr<TcpClient>;

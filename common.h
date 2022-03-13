@@ -21,6 +21,20 @@
 
 namespace Network {
 
+    struct addr_info {
+        std::string ip_addr; 
+        int port;
+    };
+
+    using AddrInfoPtr = std::shared_ptr<addr_info>;
+
+    struct proxy_config {
+        addr_info source;
+        addr_info destination;
+    };
+
+    using ProxyConfigPtr = std::shared_ptr<proxy_config>;
+
     using SockAddrInPtr = std::shared_ptr<sockaddr_in>;
     using SockAddrLen = std::shared_ptr<socklen_t>;
 
@@ -40,10 +54,12 @@ namespace Network {
         virtual void on_read() PURE;
         virtual void on_write(char* buf, size_t size) PURE;
         virtual void set_connection_pair(ConnectionBasePtr connection_pair) PURE;
+        
     };
     
 
     } // namespace Connection
+
 
     class ConnectionManagerBase {
     public:
@@ -55,6 +71,7 @@ namespace Network {
 
     class SocketBase {
     public:
+        virtual int connect(Network::addr_info info) PURE;
         virtual int get() PURE;
         virtual void on_connect() PURE;
         virtual void set_client_side(Network::Tcp::TcpClientBasePtr client) PURE;
@@ -68,27 +85,14 @@ namespace Network {
     };
     using ListenerPtr = std::shared_ptr<Listener>;
 
-    struct addr_info {
-        std::string ip_addr; 
-        int port;
-    };
 
-    using AddrInfoPtr = std::shared_ptr<addr_info>;
-
-    struct proxy_config {
-        addr_info source;
-        addr_info destination;
-    };
-
-    using ProxyConfigPtr = std::shared_ptr<proxy_config>;
 
 namespace Tcp {
 
     class TcpClientBase {
     public:
         virtual Network::SocketBasePtr get_socket() PURE;
-        virtual Network::Connection::ConnectionBasePtr connect() PURE;
-        virtual void close() PURE;
+        virtual Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd) PURE;
     };
 
 } // namespace Tcp

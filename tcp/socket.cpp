@@ -99,10 +99,12 @@ void Socket::on_connect() {
         return;
     }
 
-    auto client_side_connection = client_->connect();
+    auto client_sock = client_->get_socket();
+    auto client_side_connection = client_->connect(client_sock);
     
     auto connection = connection_manager_->create_connection(new_sock);
     connection->set_connection_pair(client_side_connection);
+    client_side_connection->set_connection_pair(connection);
     
 }
 
