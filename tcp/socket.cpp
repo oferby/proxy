@@ -99,8 +99,15 @@ void Socket::on_connect() {
         return;
     }
 
-    connection_manager_->create_connection(new_sock);
+    auto client_side_connection = client_->connect();
     
+    auto connection = connection_manager_->create_connection(new_sock);
+    connection->set_connection_pair(client_side_connection);
+    
+}
+
+void Socket::set_client_side(Network::Tcp::TcpClientBasePtr client) {
+    client_ = client;
 }
 
 SocketPtr create_socket(ConnectionManagerBasePtr connection_manager, bool is_reuse) {

@@ -7,11 +7,12 @@ ProxyPath::ProxyPath(Network::ProxyConfigPtr config, Event::DispatcherBasePtr di
     
     Network::Tcp::TcpListenerPtr listener = Network::Tcp::create_tcp_listener(config->source, 
         dispatcher_);
-
+    
     if (config->destination.port != 0) {
         // there is destination
         client_ = Network::Tcp::create_tcp_client(config->destination, dispatcher_);
-        client_->connect();
+        auto listen_sock = listener->get_socket();
+        listen_sock->set_client_side(std::static_pointer_cast<Network::Tcp::TcpClientBase>(client_));
     }
 
 }

@@ -6,20 +6,25 @@
 namespace Network {
 namespace Connection {
 
+class Connection;
+using ConnectionPtr = std::shared_ptr<Connection>;
+
 class Connection : public ConnectionBase {
 public:
     Connection(int sd, ConnectionManagerBasePtr connection_manager);
-    int get_sock() const override;
+    int get_sock() override;
     void on_read() override;
-    void on_write() override;
+    void on_write(char* buf, size_t size) override;
+    void set_connection_pair(ConnectionBasePtr connection_pair);
 private:
     int sd_;
     ConnectionManagerBasePtr connection_manager_;
-    void on_close(); 
+    void on_close();
+    ConnectionPtr connection_pair_; 
 
 };
 
-using ConnectionPtr = std::shared_ptr<Connection>;
+
 ConnectionPtr create_connection(int sd, ConnectionManagerBasePtr connection_manager);
 
 

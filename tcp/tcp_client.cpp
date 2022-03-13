@@ -14,7 +14,7 @@ TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatc
 
 Network::SocketBasePtr TcpClient::get_socket() {
     return std::static_pointer_cast<SocketBase>(sd_);
-}
+};
 
 Connection::ConnectionBasePtr TcpClient::connect() {
 

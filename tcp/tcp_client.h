@@ -9,7 +9,7 @@
 namespace Network {
 namespace Tcp {
 
-class TcpClient {
+class TcpClient : public TcpClientBase {
 private:
     Network::addr_info target_;
     Network::SocketPtr sd_;
@@ -18,7 +18,7 @@ private:
 public:
     TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher);
     Network::SocketBasePtr get_socket();
-    Connection::ConnectionBasePtr connect();
+    Network::Connection::ConnectionBasePtr connect();
     void close();
 };
 

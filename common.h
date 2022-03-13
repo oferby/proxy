@@ -19,22 +19,29 @@
 #define PURE =0;
 
 
-
 namespace Network {
 
     using SockAddrInPtr = std::shared_ptr<sockaddr_in>;
     using SockAddrLen = std::shared_ptr<socklen_t>;
+
+    namespace Tcp {
+        class TcpClientBase;
+        using TcpClientBasePtr = std::shared_ptr<TcpClientBase>;
+    } // namespace Tcp
     
     namespace Connection {
     
+    class ConnectionBase;
+    using ConnectionBasePtr = std::shared_ptr<ConnectionBase>;
+    
     class ConnectionBase {
     public:
-        virtual int get_sock() const PURE;
+        virtual int get_sock() PURE;
         virtual void on_read() PURE;
-        virtual void on_write() PURE;
+        virtual void on_write(char* buf, size_t size) PURE;
+        virtual void set_connection_pair(ConnectionBasePtr connection_pair) PURE;
     };
-
-    using ConnectionBasePtr = std::shared_ptr<ConnectionBase>;
+    
 
     } // namespace Connection
 
@@ -43,12 +50,14 @@ namespace Network {
         virtual Connection::ConnectionBasePtr create_connection(int sd) PURE;
         virtual void close_connection(int sd) PURE;
     };
+    
     using ConnectionManagerBasePtr = std::shared_ptr<ConnectionManagerBase>;
 
     class SocketBase {
     public:
         virtual int get() PURE;
         virtual void on_connect() PURE;
+        virtual void set_client_side(Network::Tcp::TcpClientBasePtr client) PURE;
     };
 
     using SocketBasePtr = std::shared_ptr<SocketBase>;
@@ -73,6 +82,16 @@ namespace Network {
 
     using ProxyConfigPtr = std::shared_ptr<proxy_config>;
 
+namespace Tcp {
+
+    class TcpClientBase {
+    public:
+        virtual Network::SocketBasePtr get_socket() PURE;
+        virtual Network::Connection::ConnectionBasePtr connect() PURE;
+        virtual void close() PURE;
+    };
+
+} // namespace Tcp
 } // namespace Network
 
 namespace Event {

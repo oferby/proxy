@@ -3,4 +3,4 @@
 simple TCP proxy
 
 ### NC server
-    nc -k -l 5000
+    nc -k -l 8586
