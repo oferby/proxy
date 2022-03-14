@@ -23,9 +23,11 @@ void ConnectionManager::close_connection(int sd) {
     puts("releasing connections");
     event_scheduler_->unregister_for_event(sd);
     auto sock = sock_map[sd];
+    sock->close();
         
     auto connection_pair = std::static_pointer_cast<Connection::Connection>(sock->get_connection_pair());
     auto client_sock = sock_map[connection_pair->get_sock()];
+    client_sock->close();
     event_scheduler_->unregister_for_event(connection_pair->get_sock());
     sock_map.erase(client_sock->get_sock());
     client_sock.reset();
@@ -33,6 +35,7 @@ void ConnectionManager::close_connection(int sd) {
 
     sock_map.erase(sd);
     sock.reset();
+    
 }
 
 ConnectionManagerPtr create_connection_manager(Event::EventSchedulerPtr event_scheduler) {

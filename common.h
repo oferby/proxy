@@ -54,6 +54,7 @@ namespace Network {
         virtual void on_read() PURE;
         virtual void on_write(char* buf, size_t size) PURE;
         virtual void set_connection_pair(ConnectionBasePtr connection_pair) PURE;
+        virtual void close() PURE;
         
     };
     

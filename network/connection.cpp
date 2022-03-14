@@ -1,11 +1,10 @@
 #include "connection.h"
 
-
 namespace Network {
 namespace Connection {
 
 Connection::Connection(int sd, ConnectionManagerBasePtr connection_manager) :
-sd_(sd), connection_manager_(connection_manager) {};
+    sd_(sd), connection_manager_(connection_manager) {};
 
 int Connection::get_sock() {
     return sd_;
@@ -13,40 +12,30 @@ int Connection::get_sock() {
 
 void Connection::on_read() {
     puts("got read event.");
-
-    char buf[1024];
+    // printf("thread id: %i\n",std::this_thread::get_id);
+    
     ssize_t result;
     int i;
 
-    size_t size = 0;
-    char* buf_ = buf;
+    size_t size;
     while (1) {
-        result = ::recv(sd_, buf_, sizeof(buf), 0);
+
+        result = ::recv(sd_, buf_, BUF_SIZE, 0);
         printf("read result: %d\n", result);
         if (result <= 0)
             break;
-        size+=result;
-        buf_+=result;
-
+        connection_pair_->on_write(buf_, result);
     }
 
     if (result == 0) {
         puts("connection closed. clearing socket events.");
         on_close();
-    } else if (result < 0) {
-        if (errno == EAGAIN && size > 0 ) {
-            connection_pair_->on_write(buf, size);  
-            return;
-        }
-        perror("recv error\n");
     }
-
-      
 
 };
 
 void Connection::on_write(char* buf, size_t size) {
-    puts("writing to client");
+    printf("writing %i bytes to client %i\n", size, sd_);
 
     int result = ::write(sd_, buf, size);
     if (result == -1) {
@@ -63,7 +52,6 @@ void Connection::on_close() {
     connection_manager_->close_connection(sd_);
 }
 
-
 void Connection::set_connection_pair(ConnectionBasePtr connection_pair) {
     connection_pair_ = std::static_pointer_cast<Connection>(connection_pair);
 }
@@ -75,9 +63,12 @@ ConnectionBasePtr Connection::get_connection_pair() {
     return std::static_pointer_cast<ConnectionBase>(connection_pair_);
 }
 
- void Connection::clear_connection_pair() {
-     ::close(sd_);
+void Connection::clear_connection_pair() {
      connection_pair_.reset();
+ }
+
+ void Connection::close() {
+    ::close(sd_);
  }
 
 Connection::~Connection() {
@@ -87,8 +78,6 @@ Connection::~Connection() {
 ConnectionPtr create_connection(int sd, ConnectionManagerBasePtr connection_manager) {
     return std::make_shared<Connection>(sd, connection_manager);
 };
-
-
 
 } // namespace Connection
 } // namespace Network

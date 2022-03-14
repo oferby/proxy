@@ -14,6 +14,7 @@ void EventScheduler::register_for_event(int fd, OnEventCallback cb, void* arg) {
 };
 
 void EventScheduler::unregister_for_event(int fd) {
+    puts("unregistering event");
     auto event_ = event_map[fd];
     event_free(event_);
     event_map.erase(fd);

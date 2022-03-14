@@ -3,6 +3,8 @@
 
 #include "../common.h"
 
+#define BUF_SIZE 65495
+
 namespace Network {
 namespace Connection {
 
@@ -18,12 +20,14 @@ public:
     void set_connection_pair(ConnectionBasePtr connection_pair);
     ConnectionBasePtr get_connection_pair();
     void clear_connection_pair();
+    void close();
     ~Connection();
 private:
     int sd_;
     ConnectionManagerBasePtr connection_manager_;
     void on_close();
     ConnectionPtr connection_pair_; 
+    char buf_[BUF_SIZE];
 
 };
 
