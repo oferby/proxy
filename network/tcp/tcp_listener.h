@@ -1,8 +1,8 @@
 #ifndef TCP_LISTENER
 #define TCP_LISTENER
 
-#include "../common.h"
-#include "../network/connection_manager.h"
+#include "../../common.h"
+#include "../connection_manager.h"
 #include "socket.h"
 
 #include <sys/socket.h> 

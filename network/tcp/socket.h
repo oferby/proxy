@@ -1,7 +1,7 @@
 #ifndef SOCKET
 #define SOCKET
 
-#include "../common.h"
+#include "../../common.h"
 
 namespace Network {
 

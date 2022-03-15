@@ -1,6 +1,6 @@
 #include "../common.h"
-#include "../tcp/tcp_listener.h"
-#include "../tcp/tcp_client.h"
+#include "../network/tcp/tcp_listener.h"
+#include "../network/tcp/tcp_client.h"
 
 namespace Network {
 namespace Proxy {

@@ -1,8 +1,8 @@
 #ifndef TCP_CLIENT
 #define TCP_CLIENT
 
-#include "../common.h"
-#include "../network/connection_manager.h"
+#include "../../common.h"
+#include "../connection_manager.h"
 #include "socket.h"
 
 
