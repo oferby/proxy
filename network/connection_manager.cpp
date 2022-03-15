@@ -20,7 +20,7 @@ Connection::ConnectionBasePtr ConnectionManager::create_connection(int sd) {
 }
 
 void ConnectionManager::close_connection(int sd) {
-    puts("releasing connections");
+    DEBUG_MSG("releasing connections");
     event_scheduler_->unregister_for_event(sd);
     auto sock = sock_map[sd];
     sock->close();

@@ -6,7 +6,7 @@ namespace Tcp {
 TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher) : target_(target), 
     dispatcher_(dispatcher) {
 
-    puts("creating new tcp listener");
+    DEBUG_MSG("creating new tcp listener");
 
     
 
@@ -22,7 +22,7 @@ Connection::ConnectionBasePtr TcpClient::connect(Network::SocketBasePtr sd) {
 
     sd->connect(target_);
     
-    puts("connected to upstream server.");
+    DEBUG_MSG("connected to upstream server.");
 
     return dispatcher_->get_connection_manager()->create_connection(sd->get());
 

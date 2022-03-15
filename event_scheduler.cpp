@@ -4,7 +4,7 @@
 namespace Event { 
 
 void EventScheduler::register_for_event(int fd, OnEventCallback cb, void* arg) {
-    puts("registering new event");
+    DEBUG_MSG("registering new event");
 
     // auto new_event = event_new(base_, fd, EV_READ | EV_PERSIST, cb, (void*) base_);
     auto new_event = event_new(base_, fd, EV_READ | EV_PERSIST, cb, arg);
@@ -14,7 +14,7 @@ void EventScheduler::register_for_event(int fd, OnEventCallback cb, void* arg) {
 };
 
 void EventScheduler::unregister_for_event(int fd) {
-    puts("unregistering event");
+    DEBUG_MSG("unregistering event");
     auto event_ = event_map[fd];
     event_free(event_);
     event_map.erase(fd);
@@ -26,7 +26,7 @@ void EventScheduler::make_nonblocking(int fd) {
 
 
 void EventScheduler::run() {
-    puts("running event loop");
+    DEBUG_MSG("running event loop");
     
     int flags = EVLOOP_NO_EXIT_ON_EMPTY;
     event_base_loop(base_, flags);

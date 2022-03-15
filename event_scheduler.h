@@ -13,7 +13,7 @@ class EventScheduler : public EventSchedulerBase {
     private:
         EventScheduler() {
 
-            puts("creating scheduler");
+            DEBUG_MSG("creating scheduler");
 
             base_ = event_base_new();
             if (!base_) {

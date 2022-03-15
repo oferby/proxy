@@ -12,7 +12,7 @@ void* (worker) (void*);
 
 int main(int argc, char** argv) {
 
-    puts("creating threads...");
+    DEBUG_MSG("creating threads...");
 
     pthread_t threads[NUM_OF_THREADS];
 
@@ -32,7 +32,6 @@ int main(int argc, char** argv) {
 
 
 void* worker(void* args) {
-    puts("I'm worker thread.");
     pthread_exit(nullptr);
 }
 

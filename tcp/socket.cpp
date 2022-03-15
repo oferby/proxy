@@ -4,7 +4,7 @@
 namespace Network {
 
 Socket::Socket(ConnectionManagerBasePtr connection_manager, bool is_reuse) : connection_manager_(connection_manager) {
-    puts("new Socket created");
+    DEBUG_MSG("new Socket created");
 
     sd_ = socket(AF_INET, SOCK_STREAM, 0);
     if ( sd_ == -1) {
@@ -54,7 +54,7 @@ int Socket::connect(Network::addr_info info) {
 
     info_ = info;
 
-    puts("connecting to server...");
+    DEBUG_MSG("connecting to server...");
 
     sockaddr_in server {0};
     auto addrlen = sizeof(server);
@@ -65,6 +65,19 @@ int Socket::connect(Network::addr_info info) {
     }
 
     server.sin_family = AF_INET;
+    // inet_aton(info_.ip_addr.c_str(), &server.sin_addr);
+    hostent* host_ = gethostbyname(info_.ip_addr.c_str());
+
+    if (host_ == nullptr) {
+        puts("could not resolve hostname.");
+        exit(EXIT_FAILURE);
+    }
+
+    in_addr * address = (in_addr * )host_->h_addr;
+    std::string ip_address = inet_ntoa(* address);
+    printf("server ip: %s\n",ip_address.c_str());
+    server.sin_addr.s_addr = inet_addr(ip_address.c_str());
+    
     server.sin_port = htons(info_.port);
     
     int status;
@@ -89,7 +102,7 @@ int Socket::get() {
 }
 
 void Socket::on_connect() {
-    puts("got new connection");
+    DEBUG_MSG("got new connection");
 
     sockaddr_in client;
     socklen_t slen = sizeof(client);

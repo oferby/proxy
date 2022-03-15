@@ -77,7 +77,7 @@ void free_fd_state(struct fd_state* state) {
 
 
 void do_read(evutil_socket_t fd, short events, void* arg) {
-    puts(">> do_read");
+    DEBUG_MSG(">> do_read");
     struct fd_state* state = (fd_state*) arg;
     char buf[1024];
     ssize_t result;
@@ -114,7 +114,7 @@ void do_read(evutil_socket_t fd, short events, void* arg) {
 
 
 void do_write(evutil_socket_t fd, short events, void* arg) {
-    puts(">> do_write\n");
+    DEBUG_MSG(">> do_write\n");
     struct fd_state* state = (fd_state*)arg;
 
     while (state->n_written < state->write_upto) {
@@ -140,7 +140,7 @@ void do_write(evutil_socket_t fd, short events, void* arg) {
 
 
 void do_accept(evutil_socket_t listener, short event, void* arg) {
-    puts(">> do_accept\n");
+    DEBUG_MSG(">> do_accept\n");
     struct event_base* base = (event_base*) arg;
     struct sockaddr_storage ss;
     socklen_t slen = sizeof(ss);

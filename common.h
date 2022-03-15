@@ -1,11 +1,21 @@
 #ifndef COMMON
 #define COMMON
 
+#define DEBUG
+
+#ifdef DEBUG
+#define DEBUG_MSG(str) do { puts(str);} while( false )
+#else
+#define DEBUG_MSG(str) do { } while ( false )
+#endif
+
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <sys/socket.h> 
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 

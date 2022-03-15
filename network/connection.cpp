@@ -11,7 +11,7 @@ int Connection::get_sock() {
 };
 
 void Connection::on_read() {
-    // puts("got read event.");
+    // DEBUG_MSG("got read event.");
     
     ssize_t result;
     int i;
@@ -27,7 +27,7 @@ void Connection::on_read() {
     }
 
     if (result == 0) {
-        puts("connection closed. clearing socket events.");
+        DEBUG_MSG("connection closed. clearing socket events.");
         on_close();
     }
 
@@ -42,12 +42,12 @@ void Connection::on_write(char* buf, size_t size) {
         return;
     }
 
-    // puts("writen data to client");    
+    // DEBUG_MSG("writen data to client");    
     
 }
 
 void Connection::on_close() {
-    puts("removing connection.");
+    DEBUG_MSG("removing connection.");
     connection_manager_->close_connection(sd_);
 }
 
@@ -71,7 +71,7 @@ void Connection::clear_connection_pair() {
  }
 
 Connection::~Connection() {
-    puts("connection destroyed.");
+    DEBUG_MSG("connection destroyed.");
 }
 
 ConnectionPtr create_connection(int sd, ConnectionManagerBasePtr connection_manager) {

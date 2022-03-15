@@ -4,7 +4,7 @@
 namespace Event {
 
 Dispatcher::Dispatcher() {
-    puts("create dispatcher");
+    DEBUG_MSG("create dispatcher");
     event_scheduler_ = create_event_scheduler();
     connection_manager_ = Network::create_connection_manager(event_scheduler_);
 }
