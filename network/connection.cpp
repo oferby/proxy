@@ -38,6 +38,10 @@ void Connection::on_write(char* buf, size_t size) {
 
     int result = ::write(sd_, buf, size);
     if (result == -1) {
+
+        if (errno == EAGAIN)
+            return;
+
         perror("error writing to client");
         return;
     }
