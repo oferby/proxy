@@ -31,9 +31,12 @@
 
 namespace Network {
 
+    enum transport {TCP, RoCE};
+
     struct addr_info {
         std::string ip_addr; 
         int port;
+        transport type;
     };
 
     using AddrInfoPtr = std::shared_ptr<addr_info>;
@@ -48,10 +51,8 @@ namespace Network {
     using SockAddrInPtr = std::shared_ptr<sockaddr_in>;
     using SockAddrLen = std::shared_ptr<socklen_t>;
 
-    namespace Tcp {
-        class TcpClientBase;
-        using TcpClientBasePtr = std::shared_ptr<TcpClientBase>;
-    } // namespace Tcp
+    class ClientBase;
+    using ClientBasePtr = std::shared_ptr<ClientBase>;
     
     namespace Connection {
     
@@ -85,28 +86,24 @@ namespace Network {
         virtual int connect(Network::addr_info info) PURE;
         virtual int get() PURE;
         virtual void on_connect() PURE;
-        virtual void set_client_side(Network::Tcp::TcpClientBasePtr client) PURE;
+        virtual void set_client_side(Network::ClientBasePtr client) PURE;
     };
 
     using SocketBasePtr = std::shared_ptr<SocketBase>;
 
     class Listener {
     public:
+
         virtual Network::SocketBasePtr get_socket() PURE;
     };
     using ListenerPtr = std::shared_ptr<Listener>;
 
-
-
-namespace Tcp {
-
-    class TcpClientBase {
+    class ClientBase {
     public:
         virtual Network::SocketBasePtr get_socket() PURE;
         virtual Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd) PURE;
     };
 
-} // namespace Tcp
 } // namespace Network
 
 namespace Event {

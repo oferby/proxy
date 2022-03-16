@@ -121,7 +121,7 @@ void Socket::on_connect() {
     
 }
 
-void Socket::set_client_side(Network::Tcp::TcpClientBasePtr client) {
+void Socket::set_client_side(Network::ClientBasePtr client) {
     client_ = client;
 }
 

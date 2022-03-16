@@ -9,7 +9,7 @@
 namespace Network {
 namespace Tcp {
 
-class TcpClient : public TcpClientBase {
+class TcpClient : public ClientBase {
 private:
     Network::addr_info target_;
     Event::DispatcherBasePtr dispatcher_;

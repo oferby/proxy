@@ -10,6 +10,7 @@ private:
     Network::Tcp::TcpListenerPtr listener_;
     Network::Tcp::TcpClientPtr client_;
     Event::DispatcherBasePtr dispatcher_;
+    Network::ListenerPtr get_listener(Network::ProxyConfigPtr config);
 
 public:
     ProxyPath(Network::ProxyConfigPtr config, Event::DispatcherBasePtr dispatcher);

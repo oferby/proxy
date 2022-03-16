@@ -10,8 +10,8 @@
                 // "${file}",
                 "*.cpp", 
                 "*.h", 
-                "tcp/*.cpp", 
-                "tcp/*.h",
+                "network/tcp/*.cpp", 
+                "network/tcp/*.h",
                 "network/*.h",
                 "network/*.cpp",
                 "proxy/*.h",
@@ -20,7 +20,7 @@
                 "-lpthread",
                 "-levent_pthreads",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "${fileDirname}/bin/${fileBasenameNoExtension}"
             ],
             "options": {
                 "cwd": "${fileDirname}"

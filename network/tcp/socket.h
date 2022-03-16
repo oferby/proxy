@@ -14,13 +14,13 @@ public:
     int listen();
     int accept();
     void on_connect();
-    void set_client_side(Network::Tcp::TcpClientBasePtr client);
+    void set_client_side(Network::ClientBasePtr client);
  
 private:
     int sd_;
     Network::addr_info info_;
     ConnectionManagerBasePtr connection_manager_;
-    Network::Tcp::TcpClientBasePtr client_;
+    Network::ClientBasePtr client_;
 };
 
 using SocketPtr = std::shared_ptr<Socket>;
