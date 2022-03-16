@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/bin/${fileBasenameNoExtension}",
-            "args": ["localhost","8585","TCP","localhost","8586","TCP"],
+            "args": ["localhost","8585","ROCE","roce-1","localhost","8586","TCP"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}/bin",
             "environment": [],

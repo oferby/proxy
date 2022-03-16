@@ -1,12 +1,10 @@
 #ifndef TCP_LISTENER
 #define TCP_LISTENER
 
-#include "../../common.h"
 #include "../connection_manager.h"
 #include "socket.h"
 
-#include <sys/socket.h> 
-#include <netinet/in.h>
+
 
 namespace Network {
 namespace Tcp {

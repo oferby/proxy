@@ -18,7 +18,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-
 #include <string>
 #include <functional>
 #include <memory>
@@ -28,6 +27,37 @@
 
 #define PURE =0;
 
+namespace Network {
+    class ConnectionManagerBase;
+    using ConnectionManagerBasePtr = std::shared_ptr<ConnectionManagerBase>;
+}
+
+namespace Event {
+    
+    // typedef void (*OnEventCallback) (int fd, short event, void* arg);
+    using OnEventCallback = void (int fd, short event, void* arg); 
+    
+
+    class EventSchedulerBase {
+    public:
+        virtual void run() PURE;
+        virtual void register_for_event(int fd, OnEventCallback cb, void* arg) PURE;
+        virtual void unregister_for_event(int fd) PURE;
+        virtual void make_nonblocking(int fd) PURE;
+    };
+
+    using EventSchedulerBasePtr = std::shared_ptr<EventSchedulerBase>;   
+    
+    class DispatcherBase {
+    public:
+        virtual void run() PURE;
+        virtual Event::EventSchedulerBasePtr get_event_scheduler() PURE;
+        virtual Network::ConnectionManagerBasePtr get_connection_manager() PURE;
+    };
+
+    using DispatcherBasePtr = std::shared_ptr<DispatcherBase>;
+
+}; // namespace Event
 
 namespace Network {
 
@@ -37,9 +67,8 @@ namespace Network {
         std::string ip_addr; 
         int port;
         transport type;
+        std::string dev_name;
     };
-
-    using AddrInfoPtr = std::shared_ptr<addr_info>;
 
     struct proxy_config {
         addr_info source;
@@ -79,7 +108,7 @@ namespace Network {
         virtual void close_connection(int sd) PURE;
     };
     
-    using ConnectionManagerBasePtr = std::shared_ptr<ConnectionManagerBase>;
+    
 
     class SocketBase {
     public:
@@ -92,45 +121,22 @@ namespace Network {
     using SocketBasePtr = std::shared_ptr<SocketBase>;
 
     class Listener {
+    protected:
+        Network::addr_info target_;
     public:
-
         virtual Network::SocketBasePtr get_socket() PURE;
     };
     using ListenerPtr = std::shared_ptr<Listener>;
 
     class ClientBase {
+    protected:
+        Network::addr_info target_;
+        Event::DispatcherBasePtr dispatcher_;
     public:
         virtual Network::SocketBasePtr get_socket() PURE;
         virtual Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd) PURE;
     };
 
 } // namespace Network
-
-namespace Event {
-    
-    // typedef void (*OnEventCallback) (int fd, short event, void* arg);
-    using OnEventCallback = void (int fd, short event, void* arg); 
-    
-
-    class EventSchedulerBase {
-    public:
-        virtual void run() PURE;
-        virtual void register_for_event(int fd, OnEventCallback cb, void* arg) PURE;
-        virtual void unregister_for_event(int fd) PURE;
-        virtual void make_nonblocking(int fd) PURE;
-    };
-
-    using EventSchedulerBasePtr = std::shared_ptr<EventSchedulerBase>;   
-    
-    class DispatcherBase {
-    public:
-        virtual void run() PURE;
-        virtual Event::EventSchedulerBasePtr get_event_scheduler() PURE;
-        virtual Network::ConnectionManagerBasePtr get_connection_manager() PURE;
-    };
-
-    using DispatcherBasePtr = std::shared_ptr<DispatcherBase>;
-
-}; // namespace Event
 
 #endif

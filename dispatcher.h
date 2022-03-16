@@ -1,8 +1,6 @@
 #ifndef DISPATCHER
 #define DISPATCHER
 
-#include "common.h"
-
 #include "network/connection_manager.h"
 #include "network/tcp/tcp_listener.h"
 #include "event_scheduler.h"
@@ -28,7 +26,7 @@ private:
     Dispatcher();
     EventSchedulerPtr event_scheduler_;
     Network::ConnectionManagerPtr connection_manager_;
-    std::vector<Network::Tcp::TcpListenerPtr> listeners_ = {};
+    std::vector<Network::ListenerPtr> listeners_ = {};
 
 };
 

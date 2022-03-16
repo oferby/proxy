@@ -3,12 +3,12 @@
 namespace Network {
 namespace Tcp {
 
-TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher) : target_(target), 
-    dispatcher_(dispatcher) {
+TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher) {
 
     DEBUG_MSG("creating new tcp listener");
 
-    
+    dispatcher_ = dispatcher;
+    target_ = target;
 
 };
 
