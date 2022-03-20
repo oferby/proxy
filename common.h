@@ -109,22 +109,32 @@ namespace Network {
     };
     
     
-
     class SocketBase {
+    protected:
+        int sd_;
+        Network::addr_info info_;
+        ConnectionManagerBasePtr connection_manager_;
+        Network::ClientBasePtr client_;
+
     public:
         virtual int connect(Network::addr_info info) PURE;
         virtual int get() PURE;
         virtual void on_connect() PURE;
         virtual void set_client_side(Network::ClientBasePtr client) PURE;
+        virtual int bind(Network::addr_info info) PURE;
+        virtual int listen() PURE;
+        // virtual int accept() PURE;
     };
-
     using SocketBasePtr = std::shared_ptr<SocketBase>;
-
+    
     class Listener {
     protected:
-        Network::addr_info target_;
+        Network::addr_info info_;
+        Network::SocketBasePtr sd_;
+        Event::DispatcherBasePtr dispatcher_;
     public:
         virtual Network::SocketBasePtr get_socket() PURE;
+        virtual void set_client_side(Network::ClientBasePtr client) PURE;
     };
     using ListenerPtr = std::shared_ptr<Listener>;
 

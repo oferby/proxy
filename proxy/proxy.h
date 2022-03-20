@@ -11,7 +11,7 @@ private:
     Network::ClientBasePtr client_;
     Event::DispatcherBasePtr dispatcher_;
     Network::ListenerPtr get_listener(Network::addr_info info);
-    Network::ClientBasePtr get_client(Network::addr_info info);
+    Network::ClientBasePtr get_client(Network::addr_info info, Network::ListenerPtr listener);
 
 public:
     ProxyPath(Network::ProxyConfigPtr config, Event::DispatcherBasePtr dispatcher);

@@ -5,14 +5,9 @@ namespace Proxy {
 
 ProxyPath::ProxyPath(Network::ProxyConfigPtr config, Event::DispatcherBasePtr dispatcher) : dispatcher_(dispatcher) {
     
-    Network::ListenerPtr listener = get_listener(config->source);
+    listener_ = get_listener(config->source);
     
-    if (config->destination.port != 0) {
-        // there is destination
-        client_ = get_client(config->destination);
-        auto listen_sock = listener->get_socket();
-        listen_sock->set_client_side(client_);
-    }
+    client_ = get_client(config->destination, listener_);
 
 }
 
@@ -35,10 +30,17 @@ Network::ListenerPtr ProxyPath::get_listener(Network::addr_info info) {
 }
 
 
-
-Network::ClientBasePtr ProxyPath::get_client(Network::addr_info info) {
+Network::ClientBasePtr ProxyPath::get_client(Network::addr_info info, Network::ListenerPtr listener) {
     
-    return std::static_pointer_cast<ClientBase>(Network::Tcp::create_tcp_client(info, dispatcher_));
+    if (info.port != 0) {
+        // there is destination
+        Network::ClientBasePtr  client = std::static_pointer_cast<ClientBase>(Network::Tcp::create_tcp_client(info, dispatcher_));
+        auto listen_sock = listener->get_socket();
+        listen_sock->set_client_side(client);
+        return client;
+    };
+
+    return nullptr;
 
 }
 

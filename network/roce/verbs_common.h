@@ -87,6 +87,25 @@ AppContextPtr create_app_context();
 
 
 
+class RoceVirtualSocket : public SocketBase {
+
+public:
+    RoceVirtualSocket(ConnectionManagerBasePtr connection_manager);
+    int connect(Network::addr_info info);
+    int get();
+    void on_connect();
+    void set_client_side(Network::ClientBasePtr client);
+    int bind(Network::addr_info info);
+    int listen();
+    // int accept();
+
+};
+using RoceVirtualSocketPtr = std::shared_ptr<RoceVirtualSocket>;
+RoceVirtualSocketPtr create_roce_socket(ConnectionManagerBasePtr connection_manager);
+
+
+
+
 class RoceListener : public Network::Listener {
 private:
     AppContextPtr app_ctx_;
@@ -94,6 +113,7 @@ private:
 public:
     RoceListener(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::SocketBasePtr get_socket();
+    void set_client_side(Network::ClientBasePtr client);
 
 };
 

@@ -3,8 +3,10 @@
 
 namespace Network {
 
-Socket::Socket(ConnectionManagerBasePtr connection_manager, bool is_reuse) : connection_manager_(connection_manager) {
+Socket::Socket(ConnectionManagerBasePtr connection_manager, bool is_reuse) {
     DEBUG_MSG("new Socket created");
+
+    connection_manager_ = connection_manager;
 
     sd_ = socket(AF_INET, SOCK_STREAM, 0);
     if ( sd_ == -1) {
@@ -65,7 +67,7 @@ int Socket::connect(Network::addr_info info) {
     }
 
     server.sin_family = AF_INET;
-    // inet_aton(info_.ip_addr.c_str(), &server.sin_addr);
+        // inet_aton(info_.ip_addr.c_str(), &server.sin_addr);
     hostent* host_ = gethostbyname(info_.ip_addr.c_str());
 
     if (host_ == nullptr) {

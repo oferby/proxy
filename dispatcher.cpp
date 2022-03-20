@@ -12,7 +12,7 @@ Dispatcher::Dispatcher() {
 void Dispatcher::new_proxy_config(Network::ProxyConfigPtr config) {
 
     Network::Proxy::ProxyPathPtr proxy_path = Network::Proxy::create_proxy_path(config, shared_from_this());
-
+    proxies_.push_back(proxy_path);
 };
 
 

@@ -8,3 +8,7 @@ simple TCP proxy
 
 ### NC server
     nc -k -l 8586
+
+
+### run
+    ./proxy localhost 8585 TCP localhost 8586 TCP

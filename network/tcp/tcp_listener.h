@@ -10,14 +10,12 @@ namespace Network {
 namespace Tcp {
 
 class TcpListener : public Network::Listener {
-private:
-    Network::addr_info info_;
-    Network::SocketPtr sd_;
-    Event::DispatcherBasePtr dispatcher_;
+
     
 public:
     TcpListener(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
-    Network::SocketBasePtr get_socket();
+    Network::SocketBasePtr get_socket() override;
+    void set_client_side(Network::ClientBasePtr client) override;
 };
 
 using TcpListenerPtr = std::shared_ptr<TcpListener>;

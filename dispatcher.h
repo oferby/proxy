@@ -27,6 +27,7 @@ private:
     EventSchedulerPtr event_scheduler_;
     Network::ConnectionManagerPtr connection_manager_;
     std::vector<Network::ListenerPtr> listeners_ = {};
+    std::vector<Network::Proxy::ProxyPathPtr> proxies_ = {};
 
 };
 

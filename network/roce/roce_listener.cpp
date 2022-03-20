@@ -8,6 +8,11 @@ RoceListener::RoceListener(Network::addr_info info, Event::DispatcherBasePtr dis
     
     DEBUG_MSG("creating RoCE listener");
     
+    info_ = info;
+    dispatcher_ = dispatcher; 
+
+    sd_ = std::static_pointer_cast<SocketBase>(create_roce_socket(dispatcher_->get_connection_manager()));
+
     app_ctx_ = create_app_context();
     RoceDevicePtr device = create_roce_device(info.dev_name);
     app_ctx_->set_device(device);
@@ -17,7 +22,11 @@ RoceListener::RoceListener(Network::addr_info info, Event::DispatcherBasePtr dis
 };
 
 Network::SocketBasePtr RoceListener::get_socket() {
-    return nullptr;
+    return sd_;
+};
+
+void RoceListener::set_client_side(Network::ClientBasePtr client) {
+    sd_->set_client_side(client);
 };
 
 RoceListenerPtr create_roce_listener(Network::addr_info info, Event::DispatcherBasePtr dispatcher) {
