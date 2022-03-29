@@ -18,18 +18,10 @@ TcpListener::TcpListener(Network::addr_info info, Event::DispatcherBasePtr dispa
     dispatcher_->get_event_scheduler()->register_for_event(sd_->get(), 
         [] (evutil_socket_t fd, short event, void* arg) {
             DEBUG_MSG("got new event");
-            // static_cast<Network::Socket*>(arg)->on_connect();
-
-            Network::Socket* ss = static_cast<Network::Socket*>(arg);
-            ss->on_connect();
-
+            static_cast<Network::Socket*>(arg)->on_connect();
         }, 
         static_cast<void*>(sd_.get()));
-
     
-    // void* v = (void*)sd_.get();
-    // auto ss = static_cast<Network::Socket*>(v);
-    // ss->on_connect();
     sd_->listen();
 
 };
