@@ -10,8 +10,7 @@ namespace Tcp {
 class TcpClient : public ClientBase {
 public:
     TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher);
-    Network::SocketBasePtr create_client_socket();
-    Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd);
+    Network::Connection::ConnectionBasePtr connect();
 };
 
 using TcpClientPtr = std::shared_ptr<TcpClient>;

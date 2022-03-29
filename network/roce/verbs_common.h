@@ -172,8 +172,7 @@ private:
     RoceConnectorPtr roce_connector_;
 public:
     RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
-    Network::SocketBasePtr create_client_socket();
-    Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd);
+    Network::Connection::ConnectionBasePtr connect();
 
 };
 
