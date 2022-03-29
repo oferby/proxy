@@ -11,14 +11,22 @@ RoceListener::RoceListener(Network::addr_info info, Event::DispatcherBasePtr dis
     info_ = info;
     dispatcher_ = dispatcher; 
 
-    sd_ = std::static_pointer_cast<SocketBase>(create_roce_socket(dispatcher_->get_connection_manager()));
-
-    app_ctx_ = create_app_context();
     RoceDevicePtr device = create_roce_device(info.dev_name);
-    app_ctx_->set_device(device);
-    // app_ctx_->set_protection_domain(create_protection_domain(device));
-    // app_ctx_->set_completion_queue(create_completion_queue(device));
+    
+    ProtectionDomainPtr pd =  create_protection_domain(device);
 
+    CompletionQueuePtr cq = create_completion_queue(device);
+
+    SharedReceiveQueuePtr srq = create_srq(pd);
+
+    app_ctx_ = create_app_context(device, pd, cq, srq);
+
+    QueuePairPtr qp = create_queue_pair(app_ctx_);
+
+    app_ctx_->set_qp(qp);
+
+    sd_ = create_roce_socket(dispatcher_->get_connection_manager());
+    
 };
 
 Network::SocketBasePtr RoceListener::get_socket() {

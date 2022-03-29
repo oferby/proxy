@@ -19,7 +19,8 @@ Network::ListenerPtr ProxyPath::get_listener(Network::addr_info info) {
             Network::Tcp::TcpListenerPtr listener = Network::Tcp::create_tcp_listener(info, 
             dispatcher_);
 
-            return std::static_pointer_cast<Listener>(listener);
+            // return std::static_pointer_cast<Listener>(listener);
+            return listener;
         }
 
         // Roce

@@ -4,14 +4,13 @@
 #include "../connection_manager.h"
 #include "socket.h"
 
-
 namespace Network {
 namespace Tcp {
 
 class TcpClient : public ClientBase {
 public:
     TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher);
-    Network::SocketBasePtr get_socket() override;
+    Network::SocketBasePtr get_socket();
     Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd);
 };
 

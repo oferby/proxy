@@ -6,6 +6,8 @@ namespace Roce {
 
 RoceDevice::RoceDevice(std::string dev_name) :name_(dev_name) {
     
+    DEBUG_MSG("creating RoCE device");
+
     ibv_device   **dev_list, **tmp_dev_list;
     ibv_device   *ib_dev;
     int status;
@@ -54,8 +56,8 @@ RoceDevice::RoceDevice(std::string dev_name) :name_(dev_name) {
 
     ibv_free_device_list(dev_list);
 
-    port_info = {};
-    status = ibv_query_port(ctx_, IB_PORT, &port_info);
+    port_info_ = {};
+    status = ibv_query_port(ctx_, IB_PORT, &port_info_);
     if (status == -1) {
         perror("could not get port info");
         exit(EXIT_FAILURE);
@@ -64,7 +66,8 @@ RoceDevice::RoceDevice(std::string dev_name) :name_(dev_name) {
 }        
 
 std::string RoceDevice::get_device_name() { return name_; };
-ibv_context* RoceDevice::get_context() { return ctx_; };
+IbvContextPtr RoceDevice::get_context() { return ctx_; };
+uint16_t RoceDevice::get_lid() { return port_info_.lid; };
 
 RoceDevicePtr create_roce_device(std::string dev_name) {
     return std::make_shared<RoceDevice>(dev_name);
