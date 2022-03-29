@@ -14,7 +14,7 @@ RoceClient::RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatc
     
 }
 
-Network::SocketBasePtr RoceClient::get_socket() { return nullptr; }; // TODO
+Network::SocketBasePtr RoceClient::create_client_socket() { return nullptr; }; // TODO
 Network::Connection::ConnectionBasePtr RoceClient::connect(Network::SocketBasePtr sd) { return nullptr; }; // TODO
 
 

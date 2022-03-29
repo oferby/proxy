@@ -143,7 +143,7 @@ namespace Network {
         Network::addr_info target_;
         Event::DispatcherBasePtr dispatcher_;
     public:
-        virtual Network::SocketBasePtr get_socket() PURE;
+        virtual Network::SocketBasePtr create_client_socket() PURE;
         virtual Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd) PURE;
     };
 

@@ -12,7 +12,7 @@ TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatc
 
 };
 
-Network::SocketBasePtr TcpClient::get_socket() {
+Network::SocketBasePtr TcpClient::create_client_socket() {
     auto sd = Network::create_socket(dispatcher_->get_connection_manager(), false);
     return std::static_pointer_cast<SocketBase>(sd);
 };

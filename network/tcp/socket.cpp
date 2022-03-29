@@ -114,7 +114,7 @@ void Socket::on_connect() {
         return;
     }
 
-    auto client_sock = client_->get_socket();
+    auto client_sock = client_->create_client_socket();
     auto client_side_connection = client_->connect(client_sock);
     
     auto connection = connection_manager_->create_connection(new_sock);
