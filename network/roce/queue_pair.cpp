@@ -28,6 +28,27 @@ QueuePair::QueuePair(AppContextPtr ctx) : ctx_(ctx) {
     }
 
     DEBUG_MSG("QP created");
+
+    ibv_qp_attr attr = {};
+    attr.qp_state        = IBV_QPS_INIT;
+    attr.pkey_index      = 0;
+    attr.port_num        = PORT_NUM;
+    attr.qp_access_flags = 0;
+
+    int state = IBV_QP_STATE              |
+                IBV_QP_PKEY_INDEX         |
+                IBV_QP_PORT               |
+                IBV_QP_ACCESS_FLAGS;  
+
+    int status = ibv_modify_qp(qp_, &attr, state);
+
+    if (status == 0)
+        DEBUG_MSG("QP changed to INIT");
+    else {
+        perror("could not change QP state to INIT");
+        exit(EXIT_FAILURE);
+    }
+        
     
 };
 
