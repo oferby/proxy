@@ -11,19 +11,7 @@ RoceListener::RoceListener(Network::addr_info info, Event::DispatcherBasePtr dis
     info_ = info;
     dispatcher_ = dispatcher; 
 
-    RoceDevicePtr device = create_roce_device(info.dev_name);
-    
-    ProtectionDomainPtr pd =  create_protection_domain(device);
-
-    CompletionQueuePtr cq = create_completion_queue(device);
-
-    SharedReceiveQueuePtr srq = create_srq(pd);
-
-    app_ctx_ = create_app_context(device, pd, cq, srq);
-
-    QueuePairPtr qp = create_queue_pair(app_ctx_);
-
-    app_ctx_->set_qp(qp);
+    roce_connector_ = create_roce_connector(info.dev_name);
 
     sd_ = create_roce_socket(dispatcher_->get_connection_manager());
     

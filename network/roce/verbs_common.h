@@ -143,12 +143,20 @@ using RoceVirtualSocketPtr = std::shared_ptr<RoceVirtualSocket>;
 RoceVirtualSocketPtr create_roce_socket(ConnectionManagerBasePtr connection_manager);
 
 
-
-
-class RoceListener : public Network::Listener {
+class RoceConnector {
 private:
     AppContextPtr app_ctx_;
 
+public:
+    RoceConnector(std::string dev_name);
+
+};
+using RoceConnectorPtr = std::shared_ptr<RoceConnector>;
+RoceConnectorPtr create_roce_connector(std::string dev_name);
+
+class RoceListener : public Network::Listener {
+private:
+    RoceConnectorPtr roce_connector_;
 public:
     RoceListener(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::SocketBasePtr get_socket();
@@ -158,6 +166,19 @@ public:
 
 using RoceListenerPtr = std::shared_ptr<RoceListener>;
 RoceListenerPtr create_roce_listener(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
+
+class RoceClient : public Network::ClientBase {
+private:
+    RoceConnectorPtr roce_connector_;
+public:
+    RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
+    Network::SocketBasePtr get_socket();
+    Network::Connection::ConnectionBasePtr connect(Network::SocketBasePtr sd);
+
+};
+
+using RoceClientPtr = std::shared_ptr<RoceClient>;
+RoceClientPtr create_roce_client(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
 
 
 } // namespace Roce
