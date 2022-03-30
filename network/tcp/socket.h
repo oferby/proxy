@@ -13,6 +13,7 @@ public:
     int connect(Network::addr_info info);
     int bind(Network::addr_info info);
     int listen();
+    int accept(std::shared_ptr<sockaddr_in> client);
     virtual void on_connect();
     void set_client_side(Network::ClientBasePtr client) override;
     // int accept();

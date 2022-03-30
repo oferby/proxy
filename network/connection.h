@@ -3,7 +3,7 @@
 
 #include "../common.h"
 
-#define BUF_SIZE 65495
+#define BUF_SIZE 4096
 
 namespace Network {
 namespace Connection {

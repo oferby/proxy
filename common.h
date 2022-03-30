@@ -30,36 +30,6 @@
 namespace Network {
     class ConnectionManagerBase;
     using ConnectionManagerBasePtr = std::shared_ptr<ConnectionManagerBase>;
-}
-
-namespace Event {
-    
-    // typedef void (*OnEventCallback) (int fd, short event, void* arg);
-    using OnEventCallback = void (int fd, short event, void* arg); 
-    
-
-    class EventSchedulerBase {
-    public:
-        virtual void run() PURE;
-        virtual void register_for_event(int fd, OnEventCallback cb, void* arg) PURE;
-        virtual void unregister_for_event(int fd) PURE;
-        virtual void make_nonblocking(int fd) PURE;
-    };
-
-    using EventSchedulerBasePtr = std::shared_ptr<EventSchedulerBase>;   
-    
-    class DispatcherBase {
-    public:
-        virtual void run() PURE;
-        virtual Event::EventSchedulerBasePtr get_event_scheduler() PURE;
-        virtual Network::ConnectionManagerBasePtr get_connection_manager() PURE;
-    };
-
-    using DispatcherBasePtr = std::shared_ptr<DispatcherBase>;
-
-}; // namespace Event
-
-namespace Network {
 
     enum transport {TCP, RoCE};
 
@@ -82,8 +52,47 @@ namespace Network {
 
     class ClientBase;
     using ClientBasePtr = std::shared_ptr<ClientBase>;
+
+
+namespace Roce{
+    class RoceConnectionManager;
+    using RoceConnectionManagerPtr = std::shared_ptr<RoceConnectionManager>;
     
-    namespace Connection {
+
+} // namespace Roce
+} // namespace Network
+
+namespace Event {
+    
+    // typedef void (*OnEventCallback) (int fd, short event, void* arg);
+    using OnEventCallback = void (int fd, short event, void* arg); 
+    
+
+    class EventSchedulerBase {
+    public:
+        virtual void run() PURE;
+        virtual void register_for_event(int fd, OnEventCallback cb, void* arg) PURE;
+        virtual void unregister_for_event(int fd) PURE;
+        virtual void make_nonblocking(int fd) PURE;
+    };
+
+    using EventSchedulerBasePtr = std::shared_ptr<EventSchedulerBase>;   
+    
+    class DispatcherBase {
+    public:
+        virtual void run() PURE;
+        virtual Event::EventSchedulerBasePtr get_event_scheduler() PURE;
+        virtual Network::ConnectionManagerBasePtr get_connection_manager() PURE;
+        virtual Network::Roce::RoceConnectionManagerPtr get_roce_connection_manager() PURE;
+    };
+
+    using DispatcherBasePtr = std::shared_ptr<DispatcherBase>;
+
+}; // namespace Event
+
+namespace Network {
+
+namespace Connection {
     
     class ConnectionBase;
     using ConnectionBasePtr = std::shared_ptr<ConnectionBase>;
@@ -99,7 +108,7 @@ namespace Network {
     };
     
 
-    } // namespace Connection
+} // namespace Connection
 
 
     class ConnectionManagerBase {
@@ -123,7 +132,7 @@ namespace Network {
         virtual void set_client_side(Network::ClientBasePtr client) PURE;
         virtual int bind(Network::addr_info info) PURE;
         virtual int listen() PURE;
-        // virtual int accept() PURE;
+        virtual int accept(std::shared_ptr<sockaddr_in> client) PURE;
     };
     using SocketBasePtr = std::shared_ptr<SocketBase>;
     

@@ -21,13 +21,14 @@ public:
     void new_proxy_config(Network::ProxyConfigPtr config);
     Network::ConnectionManagerBasePtr get_connection_manager();
     Event::EventSchedulerBasePtr get_event_scheduler() ;
+    Network::Roce::RoceConnectionManagerPtr get_roce_connection_manager();
     
 private:
     Dispatcher();
     EventSchedulerPtr event_scheduler_;
     Network::ConnectionManagerPtr connection_manager_;
-    std::vector<Network::ListenerPtr> listeners_ = {};
     std::vector<Network::Proxy::ProxyPathPtr> proxies_ = {};
+    Network::Roce::RoceConnectionManagerPtr roce_connection_manager_;
 
 };
 

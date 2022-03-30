@@ -19,14 +19,12 @@ Network::ListenerPtr ProxyPath::get_listener(Network::addr_info info) {
             Network::Tcp::TcpListenerPtr listener = Network::Tcp::create_tcp_listener(info, 
             dispatcher_);
 
-            // return std::static_pointer_cast<Listener>(listener);
             return listener;
         } 
 
         // Roce
 
-        Network::Roce::RoceListenerPtr listener = Network::Roce::create_roce_listener(info, dispatcher_);
-        // return std::static_pointer_cast<Listener>(listener);
+        Network::Roce::RoceListenerPtr listener = dispatcher_->get_roce_connection_manager()->create_roce_listener(info);
         return listener;
 
 }
@@ -45,7 +43,7 @@ Network::ClientBasePtr ProxyPath::get_client(Network::addr_info info, Network::L
  
         } else {
 
-            client = std::static_pointer_cast<ClientBase>(Network::Roce::create_roce_client(info, dispatcher_));
+            client = std::static_pointer_cast<ClientBase>(dispatcher_->get_roce_connection_manager()->create_roce_client(info));
         }
 
         auto listen_sock = listener->get_socket();

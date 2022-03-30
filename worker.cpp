@@ -8,6 +8,7 @@ Worker::Worker(std::string name) {
     this->name = name;
     
     dispatcher_ = Event::Dispatcher::getInstance();
+    dispatcher_->get_roce_connection_manager()->set_dispatcher(dispatcher_);
 
 }
 

@@ -14,6 +14,8 @@
 #define MAX_WR 10
 #define MAX_SGE 1
 
+#define ROCE_COMMUNICATION_MGR_PORT 9000
+
 namespace Network {
 namespace Roce {
 
@@ -136,7 +138,7 @@ public:
     void set_client_side(Network::ClientBasePtr client);
     int bind(Network::addr_info info);
     int listen();
-    // int accept();
+    int accept(std::shared_ptr<sockaddr_in> client);
 
 };
 using RoceVirtualSocketPtr = std::shared_ptr<RoceVirtualSocket>;
@@ -157,10 +159,13 @@ RoceConnectorPtr create_roce_connector(std::string dev_name);
 class RoceListener : public Network::Listener {
 private:
     RoceConnectorPtr roce_connector_;
+    void setup_comm_server();
+    Network::SocketBasePtr tcp_sd_;
 public:
     RoceListener(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::SocketBasePtr get_socket();
     void set_client_side(Network::ClientBasePtr client);
+    void on_connect();
 
 };
 
@@ -178,6 +183,23 @@ public:
 
 using RoceClientPtr = std::shared_ptr<RoceClient>;
 RoceClientPtr create_roce_client(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
+
+
+class RoceConnectionManager {
+private:
+    Event::DispatcherBasePtr dispatcher_;
+    std::map<std::string, RoceClientPtr> roce_clients_ {};
+    RoceListenerPtr listener_ = nullptr;
+public:
+    RoceConnectionManager();
+    void set_dispatcher(Event::DispatcherBasePtr dispatcher);
+    RoceListenerPtr create_roce_listener(Network::addr_info info);
+    RoceClientPtr create_roce_client(Network::addr_info info);
+    
+
+};
+
+RoceConnectionManagerPtr create_roce_connection_manager();
 
 
 } // namespace Roce

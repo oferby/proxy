@@ -122,6 +122,21 @@ void Socket::on_connect() {
     
 }
 
+int Socket::accept(std::shared_ptr<sockaddr_in> client) {
+
+    DEBUG_MSG("accepting new connection");
+
+    socklen_t slen = sizeof(client);
+    int new_sock = ::accept(sd_, (sockaddr*) client.get(), &slen);
+    if (new_sock == -1) {
+        perror("error getting connection socket");
+        return -1;
+    }
+
+    return new_sock;
+
+}
+
 void Socket::set_client_side(Network::ClientBasePtr client) {
     client_ = client;
 }
