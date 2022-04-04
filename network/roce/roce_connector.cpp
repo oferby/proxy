@@ -46,10 +46,6 @@ BufferPtr RoceConnector::get_qp_info_msg() {
     sprintf(hello_msg->message, "%04x:%06x:%06x:%s", qp_info->lid, qp_info->qpn,
                 qp_info->psn, gid);
 
-    
-    inet_ntop(AF_INET6, qp_info->gid, gid, INET6_ADDRSTRLEN);
-    printf("GID %s\n", gid);
-
     return hello_msg;
 }
 
@@ -64,12 +60,9 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
         remote_qp_info->gid = new ibv_gid;
         wire_gid_to_gid(tmp_gid, remote_qp_info->gid);
 
-
-        char gid[33];
-        inet_ntop(AF_INET6, remote_qp_info->gid, gid, INET6_ADDRSTRLEN);
-	    printf("GID %s\n", gid);
-
-
+        // char gid[33];
+        // inet_ntop(AF_INET6, remote_qp_info->gid, gid, INET6_ADDRSTRLEN);
+	    // printf("GID %s\n", gid);
 
         app_ctx_->get_qp()->set_remote_qp_info(remote_qp_info);
 

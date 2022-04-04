@@ -45,10 +45,9 @@ void RoceClient::setup_pair_connection() {
             
     }
 
-
     BufferPtr from_server = fd->recv();
 
-    // roce_connector_->set_pair_qp_info(from_server);
+    roce_connector_->set_pair_qp_info(from_server);
 
     BufferPtr buf = roce_connector_->get_qp_info_msg();
 
