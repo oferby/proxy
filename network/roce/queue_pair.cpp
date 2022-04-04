@@ -53,11 +53,13 @@ QueuePair::QueuePair(AppContextPtr ctx) : ctx_(ctx) {
 };
 
 QueuePairInfoPtr QueuePair::get_qp_info() {
+
     QueuePairInfoPtr qp_info = std::make_shared<QueuePairInfo>();
     qp_info->lid = ctx_->get_device()->get_lid();
     qp_info->qpn = qp_->qp_num;
     qp_info->psn = 1;
-
+    qp_info->gid = ctx_->get_device()->get_gid();
+    
     return qp_info; 
 };
 
@@ -65,7 +67,7 @@ void QueuePair::set_remote_qp_info(QueuePairInfoPtr qp_info) {
 
 	ibv_qp_attr attr = {};
     attr.qp_state		= IBV_QPS_RTR;
-    attr.path_mtu		= IBV_MTU_1024; // TODO
+    attr.path_mtu		= IBV_MTU_512; // TODO
     attr.dest_qp_num		= qp_info->qpn;
     attr.rq_psn			= qp_info->psn;
     attr.max_dest_rd_atomic	= 1;

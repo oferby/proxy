@@ -12,13 +12,18 @@ RoceVirtualSocketPtr create_roce_socket(ConnectionManagerBasePtr connection_mana
     return std::make_shared<RoceVirtualSocket>(connection_manager);
 };
 
+
+// TODO
 int RoceVirtualSocket::connect(Network::addr_info info) { return 0; };
 int RoceVirtualSocket::get() { return 0; };
 void RoceVirtualSocket::on_connect() {};
 void RoceVirtualSocket::set_client_side(Network::ClientBasePtr client) {};
-int RoceVirtualSocket::accept(std::shared_ptr<sockaddr_in> client) { return 0; };
+SocketBasePtr RoceVirtualSocket::accept() { return nullptr; };
 int RoceVirtualSocket::bind(Network::addr_info info) { return 0; };
 int RoceVirtualSocket::listen() { return 0; };
+BufferPtr RoceVirtualSocket::recv() { return nullptr; };
+void RoceVirtualSocket::send(BufferPtr buf) {};
+void RoceVirtualSocket::close() {};
 
 
 } // namespace Roce

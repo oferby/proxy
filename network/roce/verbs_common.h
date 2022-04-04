@@ -13,6 +13,7 @@
 #define CQ_SIZE 10
 #define MAX_WR 10
 #define MAX_SGE 1
+#define HELLO_MSG_SIZE (sizeof "0000:000000:000000:00000000000000000000000000000000")
 
 #define ROCE_COMMUNICATION_MGR_PORT 9000
 
@@ -21,12 +22,11 @@ namespace Roce {
 
 struct QueuePairInfo {
 	uint16_t lid;
-	int qpn;
+	uint32_t qpn;
 	int psn;
 	union ibv_gid *gid;
 	ibv_ah *ah;
 };
-
 using QueuePairInfoPtr = std::shared_ptr<QueuePairInfo>;
 
 using IbvContextPtr = ibv_context*;
@@ -38,6 +38,7 @@ class RoceDevice {
 private:
     std::string name_;
     ibv_port_attr port_info_;
+    ibv_gid gid_ {0};
     IbvContextPtr ctx_;
 
 public:
@@ -45,8 +46,11 @@ public:
     std::string get_device_name();
     IbvContextPtr get_context();
     uint16_t get_lid();
+    ibv_gid* get_gid();
 
 };
+
+
 
 using RoceDevicePtr = std::shared_ptr<RoceDevice>;
 RoceDevicePtr create_roce_device(std::string dev_name);
@@ -138,7 +142,10 @@ public:
     void set_client_side(Network::ClientBasePtr client);
     int bind(Network::addr_info info);
     int listen();
-    int accept(std::shared_ptr<sockaddr_in> client);
+    SocketBasePtr accept();
+    BufferPtr recv();
+    void send(BufferPtr buf);
+    void close();
 
 };
 using RoceVirtualSocketPtr = std::shared_ptr<RoceVirtualSocket>;
@@ -151,6 +158,9 @@ private:
 
 public:
     RoceConnector(std::string dev_name);
+    QueuePairInfoPtr get_qp_info();
+    BufferPtr get_qp_info_msg();
+    void set_pair_qp_info(BufferPtr msg);
 
 };
 using RoceConnectorPtr = std::shared_ptr<RoceConnector>;
@@ -175,6 +185,7 @@ RoceListenerPtr create_roce_listener(Network::addr_info info, Event::DispatcherB
 class RoceClient : public Network::ClientBase {
 private:
     RoceConnectorPtr roce_connector_;
+    void setup_pair_connection();
 public:
     RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::Connection::ConnectionBasePtr connect();
@@ -201,6 +212,34 @@ public:
 
 RoceConnectionManagerPtr create_roce_connection_manager();
 
+
+
+static void wire_gid_to_gid(const char *wgid, union ibv_gid *gid) { 
+
+	char tmp[9];
+	__be32 v32;
+	int i;
+	uint32_t tmp_gid[4];
+
+	for (tmp[8] = 0, i = 0; i < 4; ++i) {
+		memcpy(tmp, wgid + i * 8, 8);
+		sscanf(tmp, "%x", &v32);
+		tmp_gid[i] = be32toh(v32);
+	}
+	memcpy(gid, tmp_gid, sizeof(*gid));
+
+}
+
+static void gid_to_wire_gid(const union ibv_gid *gid, char wgid[]) {
+
+	uint32_t tmp_gid[4];
+	int i;
+
+	memcpy(tmp_gid, gid, sizeof(tmp_gid));
+	for (i = 0; i < 4; ++i)
+		sprintf(&wgid[i * 8], "%08x", htobe32(tmp_gid[i]));
+
+}
 
 } // namespace Roce
 } // namespace Network

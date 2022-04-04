@@ -22,6 +22,11 @@ Socket::Socket(ConnectionManagerBasePtr connection_manager, bool is_reuse) {
 
 }
 
+Socket::Socket(int sd, ConnectionManagerBasePtr connection_manager) {
+    sd_ = sd;
+    connection_manager_ = connection_manager;
+};
+
 int Socket::bind(Network::addr_info info) {
     info_ = info;
     sockaddr_in server {0};
@@ -122,18 +127,19 @@ void Socket::on_connect() {
     
 }
 
-int Socket::accept(std::shared_ptr<sockaddr_in> client) {
+SocketBasePtr Socket::accept() {
 
     DEBUG_MSG("accepting new connection");
-
-    socklen_t slen = sizeof(client);
-    int new_sock = ::accept(sd_, (sockaddr*) client.get(), &slen);
+    
+    sockaddr_in client_addr;
+    socklen_t slen;
+    int new_sock = ::accept(sd_, (sockaddr*) &client_addr, &slen);
     if (new_sock == -1) {
         perror("error getting connection socket");
-        return -1;
+        return create_socket(-1, connection_manager_);
     }
 
-    return new_sock;
+    return create_socket(new_sock, connection_manager_);
 
 }
 
@@ -141,8 +147,34 @@ void Socket::set_client_side(Network::ClientBasePtr client) {
     client_ = client;
 }
 
+BufferPtr Socket::recv() {
+
+    BufferPtr buf = create_buffer(64);
+
+    buf->status = ::recv(sd_, buf->message, buf->lenght, 0);
+
+    return buf;
+
+};
+
+void Socket::send(BufferPtr buf) {
+
+    buf->status = ::send(sd_, buf->message, buf->lenght, 0);
+
+};
+
+void Socket::close() {
+    DEBUG_MSG("closing socket");
+    ::close(sd_);
+}
+
+
 SocketPtr create_socket(ConnectionManagerBasePtr connection_manager, bool is_reuse) {
     return std::make_shared<Socket>(connection_manager, is_reuse);
+};
+
+SocketPtr create_socket(int sd, ConnectionManagerBasePtr connection_manager) {
+    return std::make_shared<Socket>(sd, connection_manager);
 };
 
 

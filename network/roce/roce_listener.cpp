@@ -59,13 +59,37 @@ void RoceListener::on_connect() {
 
     DEBUG_MSG("got new connection on RoCE communication server.");
 
-    auto client = std::make_shared<sockaddr_in>();
-
-    int new_sock = sd_->accept(client);
-    if (new_sock == -1) {
+    auto new_sock = tcp_sd_->accept();
+    if (new_sock->get() == -1) {
         puts("error accepting new connection!");
         return;
     }
+
+    BufferPtr qp_info_buf = roce_connector_->get_qp_info_msg();
+
+    printf("sending msg to client: %s\n", qp_info_buf->message);
+
+    new_sock->send(qp_info_buf);
+
+    if (qp_info_buf->status == -1) {
+        perror("could not sent QP infor to client");
+        return;
+    }
+
+    BufferPtr client_qp_info_buf = new_sock->recv();
+
+    printf("got msg from client: %s\n", client_qp_info_buf->message);
+
+    if (client_qp_info_buf->status <= 0) {
+        perror("could not get QP info from client");
+        return;
+    }
+
+    roce_connector_->set_pair_qp_info(client_qp_info_buf);
+
+    new_sock->close();
+
+    DEBUG_MSG("finished syncing QP info with pair");
 
 }
 

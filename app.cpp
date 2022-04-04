@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
         arg_shift++;
         
     } else {
-        puts("unknown transport");
+        puts("unknown local transport");
         exit(EXIT_FAILURE);
     }
 
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
         arg_shift++;
 
     } else {
-        puts("unknown transport");
+        puts("unknown remote transport");
         exit(EXIT_FAILURE);
     }    
 

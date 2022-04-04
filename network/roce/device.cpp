@@ -63,11 +63,18 @@ RoceDevice::RoceDevice(std::string dev_name) :name_(dev_name) {
         exit(EXIT_FAILURE);
     }
 
+    status = ibv_query_gid(ctx_, IB_PORT, GID_IDX, &gid_);
+    if (status == -1) {
+        perror("could not get GID");
+        exit(EXIT_FAILURE);
+    }
+
 }        
 
 std::string RoceDevice::get_device_name() { return name_; };
 IbvContextPtr RoceDevice::get_context() { return ctx_; };
 uint16_t RoceDevice::get_lid() { return port_info_.lid; };
+ibv_gid* RoceDevice::get_gid() { return &gid_;};
 
 RoceDevicePtr create_roce_device(std::string dev_name) {
     return std::make_shared<RoceDevice>(dev_name);

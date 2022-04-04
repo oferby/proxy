@@ -12,3 +12,11 @@ simple TCP proxy
 
 ### run
     ./proxy localhost 8585 TCP localhost 8586 TCP
+
+
+
+### utilities
+
+    ibdev2netdev
+    ibv_devices
+    sudo /usr/local/bin/hiroce gids

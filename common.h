@@ -28,6 +28,16 @@
 #define PURE =0;
 
 namespace Network {
+
+    struct Buffer {
+        size_t lenght;
+        int status;
+        char* message;
+        Buffer(size_t len);
+    };
+    using BufferPtr = std::shared_ptr<Buffer>;
+    BufferPtr create_buffer(size_t len);
+
     class ConnectionManagerBase;
     using ConnectionManagerBasePtr = std::shared_ptr<ConnectionManagerBase>;
 
@@ -117,7 +127,9 @@ namespace Connection {
         virtual void close_connection(int sd) PURE;
     };
     
-    
+    class SocketBase;
+    using SocketBasePtr = std::shared_ptr<SocketBase>;
+
     class SocketBase {
     protected:
         int sd_;
@@ -132,9 +144,12 @@ namespace Connection {
         virtual void set_client_side(Network::ClientBasePtr client) PURE;
         virtual int bind(Network::addr_info info) PURE;
         virtual int listen() PURE;
-        virtual int accept(std::shared_ptr<sockaddr_in> client) PURE;
+        virtual SocketBasePtr accept() PURE;
+        virtual BufferPtr recv() PURE;
+        virtual void send(BufferPtr buf) PURE;
+        virtual void close() PURE;
     };
-    using SocketBasePtr = std::shared_ptr<SocketBase>;
+    
     
     class Listener {
     protected:
