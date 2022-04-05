@@ -21,7 +21,7 @@ QueuePair::QueuePair(AppContextPtr ctx) : ctx_(ctx) {
     init_attr_ex.pd = ctx_->get_pd()->get_ibv_pd().get();
     init_attr_ex.comp_mask  = IBV_QP_INIT_ATTR_PD;
 
-    qp_ = ibv_create_qp_ex(ctx_->get_device()->get_context(), &init_attr_ex);
+    qp_ = std::shared_ptr<ibv_qp>(ibv_create_qp_ex(ctx_->get_device()->get_context(), &init_attr_ex));
     if (!qp_) {
         perror("could not create QP");
         exit(EXIT_FAILURE);
@@ -40,7 +40,7 @@ QueuePair::QueuePair(AppContextPtr ctx) : ctx_(ctx) {
                 IBV_QP_PORT               |
                 IBV_QP_ACCESS_FLAGS;  
 
-    int status = ibv_modify_qp(qp_, &attr, state);
+    int status = ibv_modify_qp(qp_.get(), &attr, state);
 
     if (status == 0)
         DEBUG_MSG("QP changed to INIT");
@@ -83,7 +83,7 @@ void QueuePair::set_remote_qp_info(QueuePairInfoPtr qp_info) {
     attr.ah_attr.grh.dgid = *(qp_info->gid);
     attr.ah_attr.grh.sgid_index = GID_IDX;
 
-	if (ibv_modify_qp(qp_, &attr,
+	if (ibv_modify_qp(qp_.get(), &attr,
 			  IBV_QP_STATE              |
 			  IBV_QP_AV                 |
 			  IBV_QP_PATH_MTU           |
@@ -104,7 +104,7 @@ void QueuePair::set_remote_qp_info(QueuePairInfoPtr qp_info) {
 	attr.sq_psn	    = 0;
 	attr.max_rd_atomic  = 1;
 	
-    if (ibv_modify_qp(qp_, &attr,
+    if (ibv_modify_qp(qp_.get(), &attr,
 			  IBV_QP_STATE              |
 			  IBV_QP_TIMEOUT            |
 			  IBV_QP_RETRY_CNT          |
@@ -120,6 +120,10 @@ void QueuePair::set_remote_qp_info(QueuePairInfoPtr qp_info) {
 
 };
 
+
+IbvQp QueuePair::get_ibv_qp() {
+    return qp_;
+}
 
 QueuePairPtr create_queue_pair(AppContextPtr ctx) {
     return std::make_shared<QueuePair>(ctx);

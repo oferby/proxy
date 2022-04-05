@@ -8,8 +8,8 @@
 #define QKEY 0x11111111
 #define GID_IDX 1
 #define IB_PORT 1
-#define MSG_SIZE 1500
 #define GRH_SIZE 40
+#define MSG_SIZE (1024 - GRH_SIZE)
 #define CQ_SIZE 10
 #define MAX_WR 10
 #define MAX_SGE 1
@@ -30,6 +30,13 @@ struct QueuePairInfo {
 using QueuePairInfoPtr = std::shared_ptr<QueuePairInfo>;
 
 using IbvContextPtr = ibv_context*;
+using IbvProtectionDomainPtr = std::shared_ptr<ibv_pd>;
+using IbvCompletionQueuePtr = std::shared_ptr<ibv_cq>;
+using IbvSharedReceiveQueuePtr = std::shared_ptr<ibv_srq>;
+using IbvScatterGatherElementPtr = std::shared_ptr<ibv_sge>;
+using IbvMemoryRegionPtr = std::shared_ptr<ibv_mr>;
+using IbvSgePtr = std::shared_ptr<ibv_sge>;
+using IbvQp = std::shared_ptr<ibv_qp>;
 
 class AppContext;
 using AppContextPtr = std::shared_ptr<AppContext>;
@@ -49,13 +56,10 @@ public:
     ibv_gid* get_gid();
 
 };
-
-
-
 using RoceDevicePtr = std::shared_ptr<RoceDevice>;
 RoceDevicePtr create_roce_device(std::string dev_name);
 
-using IbvProtectionDomainPtr = std::shared_ptr<ibv_pd>;
+
 
 class ProtectionDomain {
 private:
@@ -68,7 +72,7 @@ public:
 using ProtectionDomainPtr = std::shared_ptr<ProtectionDomain>;
 ProtectionDomainPtr create_protection_domain(RoceDevicePtr device);
 
-using IbvCompletionQueuePtr = std::shared_ptr<ibv_cq>;
+
 
 class CompletionQueue {
 private:    
@@ -81,8 +85,6 @@ public:
 using CompletionQueuePtr = std::shared_ptr<CompletionQueue>;
 CompletionQueuePtr create_completion_queue(RoceDevicePtr device);
 
-
-using IbvSharedReceiveQueuePtr = std::shared_ptr<ibv_srq>;
 
 class SharedReceiveQueue {
 private:
@@ -97,14 +99,17 @@ using SharedReceiveQueuePtr = std::shared_ptr<SharedReceiveQueue>;
 SharedReceiveQueuePtr create_srq(ProtectionDomainPtr pd);
 
 
+
 class QueuePair {
 private:
-    ibv_qp* qp_;
+    IbvQp qp_;
     AppContextPtr ctx_;
 public:
     QueuePair(AppContextPtr ctx);
     QueuePairInfoPtr get_qp_info();
     void set_remote_qp_info(QueuePairInfoPtr qp_info);
+    IbvQp get_ibv_qp();
+    
 };
 
 using QueuePairPtr = std::shared_ptr<QueuePair>;
@@ -132,8 +137,52 @@ public:
 AppContextPtr create_app_context(RoceDevicePtr device, ProtectionDomainPtr pd, CompletionQueuePtr cq, SharedReceiveQueuePtr srq);
 
 
-class RoceVirtualSocket : public SocketBase {
+class ScatterGatherElement {
+private:    
+    IbvSgePtr sge_;
+public:
+    ScatterGatherElement(uint64_t	addr, uint32_t length, uint32_t lkey);
+    IbvSgePtr get();
+};
+using ScatterGatherElementPtr = std::shared_ptr<ScatterGatherElement>;
+ScatterGatherElementPtr create_sge(uint64_t	addr, uint32_t length, uint32_t lkey);
 
+class MemoryRegion {
+private:
+    const size_t size_;
+    char* buf_;
+    std::vector<ScatterGatherElementPtr> available_sge_vector;
+    IbvMemoryRegionPtr mr_;
+    AppContextPtr app_ctx_;
+public:
+    MemoryRegion(AppContextPtr app_ctx, int num_of_sge);
+    std::vector<ScatterGatherElementPtr> get_available_sge(int num);
+    std::vector<ScatterGatherElementPtr> get_all_available_sge();
+    void make_available(ScatterGatherElementPtr sge);
+    ScatterGatherElementPtr get_available_sge();
+};
+using MemoryRegionPtr = std::shared_ptr<MemoryRegion>;
+MemoryRegionPtr create_memory_region(AppContextPtr app_ctx, int num_of_sge);
+
+
+class MemoryManager {
+private:
+    AppContextPtr app_ctx_;
+    std::map <uint64_t,IbvScatterGatherElementPtr> *sge_map;
+    std::vector<IbvScatterGatherElementPtr> *available_send_sge_vector;
+    MemoryRegionPtr mr_;
+public:
+    MemoryManager(AppContextPtr app_ctx);
+    int register_memory_block();
+    ScatterGatherElementPtr get_available_sge();
+};
+
+using MemoryManagerPtr = std::shared_ptr<MemoryManager>;
+MemoryManagerPtr create_memory_manager(AppContextPtr app_ctx);
+
+
+
+class RoceVirtualSocket : public SocketBase {
 public:
     RoceVirtualSocket(ConnectionManagerBasePtr connection_manager);
     int connect(Network::addr_info info);
@@ -155,6 +204,7 @@ RoceVirtualSocketPtr create_roce_socket(ConnectionManagerBasePtr connection_mana
 class RoceConnector {
 private:
     AppContextPtr app_ctx_;
+    MemoryManagerPtr memory_manager_;
 
 public:
     RoceConnector(std::string dev_name);
@@ -171,6 +221,7 @@ private:
     RoceConnectorPtr roce_connector_;
     void setup_comm_server();
     Network::SocketBasePtr tcp_sd_;
+    
 public:
     RoceListener(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::SocketBasePtr get_socket();

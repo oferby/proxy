@@ -20,6 +20,8 @@ RoceConnector::RoceConnector(std::string dev_name) {
 
     app_ctx_->set_qp(qp);
 
+    memory_manager_ = create_memory_manager(app_ctx_);
+
 };
 
 RoceConnectorPtr create_roce_connector(std::string dev_name) {
