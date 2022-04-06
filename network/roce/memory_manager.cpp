@@ -1,3 +1,4 @@
+#include <errno.h>
 #include "verbs_common.h"
 
 namespace Network {
@@ -25,9 +26,13 @@ int MemoryManager::register_memory_block() {
         rec_wr.sg_list = sge->get().get();
         rec_wr.num_sge = 1;
 
-        ibv_recv_wr *bad_wr;
+        ibv_recv_wr* bad_wr;
 
-        if (ibv_post_recv(app_ctx_->get_qp()->get_ibv_qp().get(), &rec_wr, &bad_wr)) {
+        ibv_qp* qp = app_ctx_->get_qp()->get_ibv_qp().get();
+        
+        errno = 0;
+        int ret;
+        if (ret = ibv_post_recv(qp, &rec_wr, &bad_wr)) {
             perror("error posting RR.");
             exit(EXIT_FAILURE);    
         }  

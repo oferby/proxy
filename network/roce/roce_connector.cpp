@@ -1,4 +1,6 @@
+#include <errno.h>
 #include "verbs_common.h"
+#include <malloc.h>
 
 
 namespace Network {
@@ -12,9 +14,9 @@ RoceConnector::RoceConnector(std::string dev_name) {
 
     CompletionQueuePtr cq = create_completion_queue(device);
 
-    SharedReceiveQueuePtr srq = create_srq(pd);
+    // SharedReceiveQueuePtr srq = create_srq(pd);
 
-    app_ctx_ = create_app_context(device, pd, cq, srq);
+    app_ctx_ = create_app_context(device, pd, cq, nullptr);
 
     QueuePairPtr qp = create_queue_pair(app_ctx_);
 
@@ -53,22 +55,20 @@ BufferPtr RoceConnector::get_qp_info_msg() {
 
 void RoceConnector::set_pair_qp_info(BufferPtr msg) {
 
-        QueuePairInfoPtr remote_qp_info = std::make_shared<QueuePairInfo>();
+    QueuePairInfoPtr remote_qp_info = std::make_shared<QueuePairInfo>();
 
-        char tmp_gid[33];
-        sscanf(msg->message, "%x:%x:%x:%s", &remote_qp_info->lid, &remote_qp_info->qpn,
-                                &remote_qp_info->psn, tmp_gid);
+    char tmp_gid[33];
+    sscanf(msg->message, "%x:%x:%x:%s", &remote_qp_info->lid, &remote_qp_info->qpn,
+                            &remote_qp_info->psn, tmp_gid);
 
-        remote_qp_info->gid = new ibv_gid;
-        wire_gid_to_gid(tmp_gid, remote_qp_info->gid);
+    remote_qp_info->gid = new ibv_gid;
+    wire_gid_to_gid(tmp_gid, remote_qp_info->gid);
 
-        // char gid[33];
-        // inet_ntop(AF_INET6, remote_qp_info->gid, gid, INET6_ADDRSTRLEN);
-	    // printf("GID %s\n", gid);
+    app_ctx_->get_qp()->set_remote_qp_info(remote_qp_info);
 
-        app_ctx_->get_qp()->set_remote_qp_info(remote_qp_info);
+    DEBUG_MSG("QP info set");
 
-        DEBUG_MSG("QP info set");
+    memory_manager_->register_memory_block();
 
 };
 

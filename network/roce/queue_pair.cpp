@@ -8,7 +8,7 @@ QueuePair::QueuePair(AppContextPtr ctx) : ctx_(ctx) {
     ibv_qp_init_attr_ex init_attr_ex = {0};
     init_attr_ex.send_cq = ctx_->get_cq()->get_cq().get();
     init_attr_ex.recv_cq = ctx_->get_cq()->get_cq().get();
-    init_attr_ex.srq = ctx_->get_srq()->get_srq().get();
+    // init_attr_ex.srq = ctx_->get_srq()->get_srq().get();
 
     init_attr_ex.cap     = {};
     init_attr_ex.cap.max_send_wr  = MAX_WR;
