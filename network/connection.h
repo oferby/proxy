@@ -3,7 +3,7 @@
 
 #include "../common.h"
 
-#define BUF_SIZE 4096
+
 
 namespace Network {
 namespace Connection {
@@ -16,7 +16,7 @@ public:
     Connection(int sd, ConnectionManagerBasePtr connection_manager);
     int get_sock() override;
     void on_read() override;
-    void on_write(char* buf, size_t size) override;
+    void on_write(BufferPtr buf) override;
     void set_connection_pair(ConnectionBasePtr connection_pair);
     ConnectionBasePtr get_connection_pair();
     void clear_connection_pair();
@@ -26,8 +26,9 @@ private:
     int sd_;
     ConnectionManagerBasePtr connection_manager_;
     void on_close();
-    ConnectionPtr connection_pair_; 
-    char buf_[BUF_SIZE];
+    
+    BufferPtr buf_;
+    
 
 };
 

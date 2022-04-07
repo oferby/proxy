@@ -25,15 +25,17 @@
 #include <vector>
 #include <thread>
 
+#define BUF_SIZE 4096
+
 #define PURE =0;
 
 namespace Network {
 
     struct Buffer {
-        size_t lenght;
-        int status;
+        size_t size;
+        int lenght;
         char* message;
-        Buffer(size_t len);
+        Buffer(size_t size);
     };
     using BufferPtr = std::shared_ptr<Buffer>;
     BufferPtr create_buffer(size_t len);
@@ -108,10 +110,12 @@ namespace Connection {
     using ConnectionBasePtr = std::shared_ptr<ConnectionBase>;
     
     class ConnectionBase {
+    protected:
+        ConnectionBasePtr connection_pair_;
     public:
         virtual int get_sock() PURE;
         virtual void on_read() PURE;
-        virtual void on_write(char* buf, size_t size) PURE;
+        virtual void on_write(BufferPtr buf) PURE;
         virtual void set_connection_pair(ConnectionBasePtr connection_pair) PURE;
         virtual void close() PURE;
         

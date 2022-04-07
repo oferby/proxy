@@ -4,7 +4,9 @@ namespace Network {
 namespace Connection {
 
 Connection::Connection(int sd, ConnectionManagerBasePtr connection_manager) :
-    sd_(sd), connection_manager_(connection_manager) {};
+    sd_(sd), connection_manager_(connection_manager) {
+        buf_ = create_buffer(BUF_SIZE);
+    };
 
 int Connection::get_sock() {
     return sd_;
@@ -19,25 +21,25 @@ void Connection::on_read() {
     size_t size;
     while (1) {
 
-        result = ::recv(sd_, buf_, BUF_SIZE, 0);
-        // printf("read result: %d\n", result);
-        if (result <= 0)
+        buf_->lenght = ::recv(sd_, buf_->message, BUF_SIZE, 0);
+        // printf("read result: %d\n", buf_->lenght);
+        if (buf_->lenght <= 0)
             break;
-        connection_pair_->on_write(buf_, result);
+        connection_pair_->on_write(buf_);
     }
 
-    if (result == 0) {
+    if (buf_->lenght == 0) {
         DEBUG_MSG("connection closed. clearing socket events.");
         on_close();
     }
 
 };
 
-void Connection::on_write(char* buf, size_t size) {
+void Connection::on_write(BufferPtr buf) {
     // printf("writing %i bytes to client %i\n", size, sd_);
 
-    int result = ::write(sd_, buf, size);
-    if (result == -1) {
+    buf->lenght = ::write(sd_, buf->message, buf->lenght);
+    if (buf->lenght == -1) {
 
         if (errno == EAGAIN)
             return;

@@ -17,7 +17,19 @@ RoceClient::RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatc
     
 }
 
-Network::Connection::ConnectionBasePtr RoceClient::connect() { return nullptr; }; // TODO
+Network::Connection::ConnectionBasePtr RoceClient::connect() { 
+
+    DEBUG_MSG("creating new Roce Connection.");
+
+    next_connection_id_++;
+
+    RoceVirtualConnectionPtr roce_connection = create_roce_connection(next_connection_id_, roce_connector_);    
+
+    roce_connection_map[next_connection_id_] = roce_connection;
+
+    return roce_connection; 
+
+};
 
 
 
@@ -53,12 +65,14 @@ void RoceClient::setup_pair_connection() {
 
     fd->send(buf);
 
-    if (buf->status == -1) {
+    if (buf->lenght == -1) {
         perror("error sending qp info to server.");
 
     };
 
     fd->close();
+
+    DEBUG_MSG("finished syncing QP info with pair");
 
 };
 

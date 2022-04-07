@@ -6,7 +6,6 @@ namespace Event {
 void EventScheduler::register_for_event(int fd, OnEventCallback cb, void* arg) {
     DEBUG_MSG("registering new event");
 
-    // auto new_event = event_new(base_, fd, EV_READ | EV_PERSIST, cb, (void*) base_);
     auto new_event = event_new(base_, fd, EV_READ | EV_PERSIST, cb, arg);
     event_add(new_event, nullptr);
     event_map[fd] = new_event;

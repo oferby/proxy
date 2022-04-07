@@ -216,6 +216,31 @@ public:
 using RoceConnectorPtr = std::shared_ptr<RoceConnector>;
 RoceConnectorPtr create_roce_connector(std::string dev_name);
 
+
+
+class RoceVirtualConnection : public Network::Connection::ConnectionBase {
+private:
+    uint64_t id_;
+    RoceConnectorPtr roce_connector_;
+public:
+    RoceVirtualConnection(uint64_t id, RoceConnectorPtr roce_connector);
+    int get_sock() override;
+    void on_read() override;
+    void on_write(BufferPtr buf) override;
+    void set_connection_pair(Network::Connection::ConnectionBasePtr connection_pair) override;
+    void close() override;
+    
+};
+
+using RoceVirtualConnectionPtr = std::shared_ptr<RoceVirtualConnection>;
+RoceVirtualConnectionPtr create_roce_connection(uint64_t id, RoceConnectorPtr roce_connector);
+
+
+
+
+
+
+
 class RoceListener : public Network::Listener {
 private:
     RoceConnectorPtr roce_connector_;
@@ -237,6 +262,8 @@ class RoceClient : public Network::ClientBase {
 private:
     RoceConnectorPtr roce_connector_;
     void setup_pair_connection();
+    uint64_t next_connection_id_ = 0;
+    std::map<uint64_t, RoceVirtualConnectionPtr> roce_connection_map;
 public:
     RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::Connection::ConnectionBasePtr connect();

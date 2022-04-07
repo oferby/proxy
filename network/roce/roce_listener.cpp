@@ -71,7 +71,7 @@ void RoceListener::on_connect() {
 
     new_sock->send(qp_info_buf);
 
-    if (qp_info_buf->status == -1) {
+    if (qp_info_buf->lenght == -1) {
         perror("could not sent QP infor to client");
         return;
     }
@@ -80,7 +80,7 @@ void RoceListener::on_connect() {
 
     printf("got msg from client: %s\n", client_qp_info_buf->message);
 
-    if (client_qp_info_buf->status <= 0) {
+    if (client_qp_info_buf->lenght <= 0) {
         perror("could not get QP info from client");
         return;
     }

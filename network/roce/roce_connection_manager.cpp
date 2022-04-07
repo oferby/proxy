@@ -4,7 +4,9 @@
 namespace Network {
 namespace Roce {
 
-RoceConnectionManager::RoceConnectionManager() {};
+RoceConnectionManager::RoceConnectionManager() {
+    DEBUG_MSG("Roce connection manager created.");
+};
 
 void RoceConnectionManager::set_dispatcher(Event::DispatcherBasePtr dispatcher) {
     dispatcher_ = dispatcher;

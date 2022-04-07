@@ -149,9 +149,9 @@ void Socket::set_client_side(Network::ClientBasePtr client) {
 
 BufferPtr Socket::recv() {
 
-    BufferPtr buf = create_buffer(64);
+    BufferPtr buf = create_buffer(BUF_SIZE);
 
-    buf->status = ::recv(sd_, buf->message, buf->lenght, 0);
+    buf->lenght = ::recv(sd_, buf->message, buf->lenght, 0);
 
     return buf;
 
@@ -159,7 +159,7 @@ BufferPtr Socket::recv() {
 
 void Socket::send(BufferPtr buf) {
 
-    buf->status = ::send(sd_, buf->message, buf->lenght, 0);
+    buf->lenght = ::send(sd_, buf->message, buf->lenght, 0);
 
 };
 
