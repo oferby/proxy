@@ -87,6 +87,7 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
     memcpy(remote_con_data.gid, tmp_con_data->gid, 16);
 
     // fprintf(stdout, "Remote address = 0x%"PRIx64"\n", remote_con_data.addr);
+
     fprintf(stdout, "Remote rkey = 0x%x\n", remote_con_data.rkey);
     fprintf(stdout, "Remote QP number = 0x%x\n", remote_con_data.qp_num);
     fprintf(stdout, "Remote LID = 0x%x\n", remote_con_data.lid);
@@ -127,7 +128,7 @@ void RoceConnector::post_recv(ScatterGatherElementPtr sge) {
 
         ibv_sge* ib_sge = sge->get().get();
 
-        printf("POSTING: SGE addr: %lu, Data addr: %lu, Length: %u, LKey: %u\n", reinterpret_cast<uint64_t>(ib_sge), ib_sge->addr, ib_sge->length, ib_sge->lkey);
+        // printf("POSTING: SGE addr: %lu, Data addr: %lu, Length: %u, LKey: %u\n", reinterpret_cast<uint64_t>(ib_sge), ib_sge->addr, ib_sge->length, ib_sge->lkey);
 
         ibv_recv_wr rr;
         ibv_recv_wr *bad_wr;
@@ -140,13 +141,11 @@ void RoceConnector::post_recv(ScatterGatherElementPtr sge) {
         rr.sg_list = ib_sge;
         rr.num_sge = 1;
 
-        /* post the Receive Request to the RQ */
         rc = ibv_post_recv(app_ctx_->get_qp()->get_ibv_qp().get(), &rr, &bad_wr);
         if (rc)
             fprintf(stderr, "failed to post RR\n");
-        else
-            fprintf(stdout, "Receive Request was posted\n");
-
+        // else
+            // DEBUG_MSG("Receive Request was posted\n");
 
 }
 
@@ -160,7 +159,6 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     auto p = reinterpret_cast<void*>(ib_sge->addr);
     memcpy(p, buf_->message, buf_->lenght);
     ib_sge->length = buf_->lenght;
-    // ib_sge->lkey = memory_manager_->get_memory_region()->get_lkey();
 
     /* prepare the send work request */
     memset(&sr, 0, sizeof(sr));
@@ -171,7 +169,6 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     sr.opcode = IBV_WR_SEND;
     sr.send_flags = IBV_SEND_SIGNALED;
 
-    /* there is a Receive Request in the responder side, so we won't get any into RNR flow */
     rc = ibv_post_send(app_ctx_->get_qp()->get_ibv_qp().get(), &sr, &bad_wr);
     if (rc) {
         fprintf(stderr, "failed to post SR\n");
@@ -199,7 +196,6 @@ void RoceConnector::poll_complition() {
         if (status > 0) {
             DEBUG_MSG("got new WC event.");
             if(wc->status == ibv_wc_status::IBV_WC_SUCCESS) {
-                printf("wid: " PRIu64 ".\n", wc->wr_id);
                 handle_wc(wc);
             } else {
                 DEBUG_MSG("got error processing WC.");
@@ -238,26 +234,24 @@ void RoceConnector::handle_wc(std::shared_ptr<ibv_wc> wc) {
 
 void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
     
-    printf("WC: received %i\n",wc->byte_len);
+    DEBUG_MSG("handling RR");
 
-    if (wc->wc_flags && IBV_WC_GRH) {
-        puts("GRH exists in payload.");
-        printf("WR ID: %lu\n",wc->wr_id);
+    // printf("WC: received %i\n",wc->byte_len);
+
+    // printf("WR ID: %lu\n",wc->wr_id);
+
+    ScatterGatherElementPtr sge_ptr = memory_manager_->get_sge(wc->wr_id);
+
+    ibv_sge *sge = sge_ptr->get().get();
+    // printf("SGE addr:%lu, Data addr: %lu, length: %i\n", reinterpret_cast<uint64_t>(sge), sge->addr, wc->byte_len);
+
+    char *data = new char[wc->byte_len];
+    char *p = reinterpret_cast<char*>(sge->addr);
+    memcpy(data, p, wc->byte_len);
+    printf("SGE message: %s\n", data);
+
+    post_recv(sge_ptr);
         
-
-        ScatterGatherElementPtr sge_ptr = memory_manager_->get_sge(wc->wr_id);
-
-        ibv_sge *sge = sge_ptr->get().get();
-        printf("SGE addr:%lu, Data addr: %lu, length: %i\n", reinterpret_cast<uint64_t>(sge), sge->addr, wc->byte_len);
-
-        char *data = new char[wc->byte_len];
-        char *p = reinterpret_cast<char*>(sge->addr);
-        memcpy(data, p, wc->byte_len);
-        printf("SGE message: %s\n", data);
-
-        post_recv(sge_ptr);
-        
-    }
 
 }
 
