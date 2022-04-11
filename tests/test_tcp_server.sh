@@ -1,0 +1,1 @@
+./bin/proxy localhost 8586 TCP localhost 8585 TCP

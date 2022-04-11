@@ -69,10 +69,12 @@ ConnectionBasePtr Connection::get_connection_pair() {
 }
 
 void Connection::clear_connection_pair() {
-     connection_pair_.reset();
+    DEBUG_MSG("clearing connection pair.");
+    connection_pair_.reset();
  }
 
  void Connection::close() {
+    DEBUG_MSG("closing connection.");
     ::close(sd_);
  }
 
