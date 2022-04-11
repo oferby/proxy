@@ -5,7 +5,8 @@ namespace Network
     
 Buffer::Buffer(size_t len) {
     lenght = len;
-    message = new char[len];
+    if (len > 0)
+        message = new char[len];
 };
 
 BufferPtr create_buffer(size_t len) {

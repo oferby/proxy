@@ -61,7 +61,7 @@ void RoceListener::on_connect() {
 
     auto new_sock = tcp_sd_->accept();
     if (new_sock->get() == -1) {
-        puts("error accepting new connection!");
+        DEBUG_MSG("error accepting new connection!");
         return;
     }
 

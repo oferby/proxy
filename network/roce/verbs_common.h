@@ -6,19 +6,31 @@
 
 #define PORT_NUM 1
 #define QKEY 0x11111111
-#define GID_IDX 1
+#define GID_IDX 3
 #define IB_PORT 1
 #define GRH_SIZE 40
-#define MSG_SIZE (1024 - GRH_SIZE)
+#define MSG_SIZE (2048 - GRH_SIZE)
 #define CQ_SIZE 10
 #define MAX_WR 10
-#define MAX_SGE 1
+#define MAX_SGE 5
 #define HELLO_MSG_SIZE (sizeof "0000:000000:000000:00000000000000000000000000000000")
 
 #define ROCE_COMMUNICATION_MGR_PORT 9000
 
 namespace Network {
 namespace Roce {
+
+/* structure to exchange data which is needed to connect the QPs */
+struct cm_con_data_t
+{
+    // uint64_t addr; /* Buffer address */
+    uint32_t rkey; /* Remote key */
+    uint32_t qp_num; /* QP number */
+    uint16_t lid; /* LID of the IB port */
+    uint8_t gid[16]; /* gid */
+} __attribute__ ((packed));
+
+// using CmConDataPtr = std::shared_ptr<cm_con_data_t>;
 
 struct QueuePairInfo {
 	uint16_t lid;
@@ -141,8 +153,13 @@ class ScatterGatherElement {
 private:    
     IbvSgePtr sge_;
 public:
-    ScatterGatherElement(uint64_t	addr, uint32_t length, uint32_t lkey);
+    ScatterGatherElement(uint64_t addr, uint32_t length, uint32_t lkey);
     IbvSgePtr get();
+    uint64_t get_addr();
+    uint32_t get_length(); 
+    uint32_t get_lkey();
+    void set_lenght(uint32_t lenght);
+    void set_addr(uint64_t addr);
 };
 using ScatterGatherElementPtr = std::shared_ptr<ScatterGatherElement>;
 ScatterGatherElementPtr create_sge(uint64_t	addr, uint32_t length, uint32_t lkey);
@@ -160,6 +177,8 @@ public:
     std::vector<ScatterGatherElementPtr> get_all_available_sge();
     void make_available(ScatterGatherElementPtr sge);
     ScatterGatherElementPtr get_available_sge();
+    uint32_t get_lkey();
+    char* get_registered_buffer();
 };
 using MemoryRegionPtr = std::shared_ptr<MemoryRegion>;
 MemoryRegionPtr create_memory_region(AppContextPtr app_ctx, int num_of_sge);
@@ -175,6 +194,7 @@ public:
     MemoryManager(AppContextPtr app_ctx);
     int register_memory_block();
     ScatterGatherElementPtr get_available_sge();
+    MemoryRegionPtr get_memory_region();
 };
 
 using MemoryManagerPtr = std::shared_ptr<MemoryManager>;
@@ -205,12 +225,18 @@ class RoceConnector {
 private:
     AppContextPtr app_ctx_;
     MemoryManagerPtr memory_manager_;
+    pthread_t polling_thread;
+
+    void poll_complition();
+    void handle_wc(std::shared_ptr<ibv_wc> wc);
+
 
 public:
     RoceConnector(std::string dev_name);
     QueuePairInfoPtr get_qp_info();
     BufferPtr get_qp_info_msg();
     void set_pair_qp_info(BufferPtr msg);
+    void send(BufferPtr buf, uint32_t id);
 
 };
 using RoceConnectorPtr = std::shared_ptr<RoceConnector>;
@@ -220,10 +246,10 @@ RoceConnectorPtr create_roce_connector(std::string dev_name);
 
 class RoceVirtualConnection : public Network::Connection::ConnectionBase {
 private:
-    uint64_t id_;
+    uint32_t id_;
     RoceConnectorPtr roce_connector_;
 public:
-    RoceVirtualConnection(uint64_t id, RoceConnectorPtr roce_connector);
+    RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_connector);
     int get_sock() override;
     void on_read() override;
     void on_write(BufferPtr buf) override;
@@ -233,7 +259,7 @@ public:
 };
 
 using RoceVirtualConnectionPtr = std::shared_ptr<RoceVirtualConnection>;
-RoceVirtualConnectionPtr create_roce_connection(uint64_t id, RoceConnectorPtr roce_connector);
+RoceVirtualConnectionPtr create_roce_connection(uint32_t id, RoceConnectorPtr roce_connector);
 
 
 
@@ -262,8 +288,8 @@ class RoceClient : public Network::ClientBase {
 private:
     RoceConnectorPtr roce_connector_;
     void setup_pair_connection();
-    uint64_t next_connection_id_ = 0;
-    std::map<uint64_t, RoceVirtualConnectionPtr> roce_connection_map;
+    uint32_t next_connection_id_ = 0;
+    std::map<uint32_t, RoceVirtualConnectionPtr> roce_connection_map;
 public:
     RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::Connection::ConnectionBasePtr connect();

@@ -10,6 +10,10 @@ MemoryManager::MemoryManager(AppContextPtr app_ctx) : app_ctx_(app_ctx) {
 
 }
 
+MemoryRegionPtr MemoryManager::get_memory_region() {
+    return mr_;
+}
+
 
 int MemoryManager::register_memory_block() {
     DEBUG_MSG("registering memory block");

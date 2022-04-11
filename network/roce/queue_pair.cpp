@@ -63,6 +63,7 @@ QueuePairInfoPtr QueuePair::get_qp_info() {
     return qp_info; 
 };
 
+
 void QueuePair::set_remote_qp_info(QueuePairInfoPtr qp_info) {
 
 	ibv_qp_attr attr = {};
