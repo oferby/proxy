@@ -110,28 +110,36 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
     char* reg_buf = memory_manager_->get_memory_region()->get_registered_buffer();
 
     ibv_sge ib_sge;
-    ib_sge.addr = (uintptr_t) ( reg_buf + SGE_MSG_SIZE );
-    ib_sge.length = SGE_MSG_SIZE;
-    ib_sge.lkey = memory_manager_->get_memory_region()->get_lkey();
 
-    ibv_recv_wr rr;
-    ibv_recv_wr *bad_wr;
-    int rc;
-    
-    /* prepare the receive work request */
-    memset(&rr, 0, sizeof(rr));
-    rr.next = NULL;
-    rr.wr_id = ib_sge.addr;
-    rr.sg_list = &ib_sge;
-    rr.num_sge = 1;
+    auto addr_ = (uintptr_t) reg_buf ;
 
-    /* post the Receive Request to the RQ */
-    rc = ibv_post_recv(app_ctx_->get_qp()->get_ibv_qp().get(), &rr, &bad_wr);
-    if (rc)
-        fprintf(stderr, "failed to post RR\n");
-    else
-        fprintf(stdout, "Receive Request was posted\n");
+    for (int i = 0; i < 3; ++i) {
 
+        ib_sge.addr = addr_;
+        ib_sge.length = SGE_MSG_SIZE;
+        ib_sge.lkey = memory_manager_->get_memory_region()->get_lkey();
+
+        ibv_recv_wr rr;
+        ibv_recv_wr *bad_wr;
+        int rc;
+
+        /* prepare the receive work request */
+        memset(&rr, 0, sizeof(rr));
+        rr.next = NULL;
+        rr.wr_id = ib_sge.addr;
+        rr.sg_list = &ib_sge;
+        rr.num_sge = 1;
+
+        /* post the Receive Request to the RQ */
+        rc = ibv_post_recv(app_ctx_->get_qp()->get_ibv_qp().get(), &rr, &bad_wr);
+        if (rc)
+            fprintf(stderr, "failed to post RR\n");
+        else
+            fprintf(stdout, "Receive Request was posted\n");
+        
+        addr_+= MSG_SIZE;
+
+    }
 
     DEBUG_MSG("starting polling thread.");
     
@@ -165,7 +173,7 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     char* reg_buf = memory_manager_->get_memory_region()->get_registered_buffer();
 
     ibv_sge ib_sge;
-    ib_sge.addr = (uintptr_t) ( reg_buf + SGE_MSG_SIZE );
+    ib_sge.addr = (uintptr_t) ( reg_buf + MSG_SIZE * 5 );
     ib_sge.length = SGE_MSG_SIZE;
     ib_sge.lkey = memory_manager_->get_memory_region()->get_lkey();
 
@@ -200,7 +208,7 @@ void RoceConnector::poll_complition() {
         int status = ibv_poll_cq(app_ctx_->get_cq()->get_cq().get(), 1, wc.get());
         if (status < 0) {
             perror("error getting WC.");
-            break;;
+            continue;
         }
 
         if (status > 0) {
@@ -208,10 +216,8 @@ void RoceConnector::poll_complition() {
             if(wc->status == ibv_wc_status::IBV_WC_SUCCESS) {
                 printf("wid: " PRId64 ", opcode: %i\n", wc->wr_id, wc->opcode);
                 handle_wc(wc);
-                break;
             } else {
                 DEBUG_MSG("got error processing WC.");
-                break;
             }
 
         }
