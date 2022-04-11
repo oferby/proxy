@@ -195,6 +195,7 @@ public:
     ScatterGatherElementPtr get_available_sge();
     ScatterGatherElementPtr get_sge(uint64_t addr);
     MemoryRegionPtr get_memory_region();
+    void make_available(ScatterGatherElementPtr sge);
 };
 
 using MemoryManagerPtr = std::shared_ptr<MemoryManager>;
@@ -231,6 +232,7 @@ private:
     void handle_wc(std::shared_ptr<ibv_wc> wc);
     void handle_sr(std::shared_ptr<ibv_wc> wc);
     void handle_rr(std::shared_ptr<ibv_wc> wc);
+    void post_recv(ScatterGatherElementPtr sge);
 
 
 public:

@@ -88,7 +88,7 @@ std::vector<ScatterGatherElementPtr> MemoryRegion::get_all_available_sge() {
 }
 
 void MemoryRegion::make_available(ScatterGatherElementPtr sge) {
-    available_sge_vector.push_back(sge);
+    available_sge_vector.insert(available_sge_vector.begin(), sge);
 }
 
 

@@ -104,24 +104,28 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
 
     DEBUG_MSG("QP info set");
 
-
-
-
-
-    // memory_manager_->register_memory_block();
-
-    // char* reg_buf = memory_manager_->get_memory_region()->get_registered_buffer();
-
-    
-
-    // auto addr_ = reinterpret_cast<uint64_t>(reg_buf);
-
     for (int i = 0; i < 3; ++i) {
+        post_recv(memory_manager_->get_available_sge());
+    }
 
-        ibv_sge* ib_sge = memory_manager_->get_available_sge()->get().get();
-        // ib_sge->addr = addr_;
-        // ib_sge->length = MSG_SIZE;
-        // ib_sge->lkey = memory_manager_->get_memory_region()->get_lkey();
+    DEBUG_MSG("starting polling thread.");
+    
+    int status = pthread_create(&polling_thread, nullptr, 
+    [](void* arg) -> void* {
+        static_cast<RoceConnector*>(arg)->poll_complition();
+        return nullptr;
+    }, 
+    this);
+    
+    if (status != 0) {
+        perror("error starting thread");
+    }
+
+};
+
+void RoceConnector::post_recv(ScatterGatherElementPtr sge) {
+
+        ibv_sge* ib_sge = sge->get().get();
 
         printf("POSTING: SGE addr: %lu, Data addr: %lu, Length: %u, LKey: %u\n", reinterpret_cast<uint64_t>(ib_sge), ib_sge->addr, ib_sge->length, ib_sge->lkey);
 
@@ -142,54 +146,21 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
             fprintf(stderr, "failed to post RR\n");
         else
             fprintf(stdout, "Receive Request was posted\n");
-        
-        // addr_+= MSG_SIZE;
 
-    }
 
-    DEBUG_MSG("starting polling thread.");
-    
-    int status = pthread_create(&polling_thread, nullptr, 
-    [](void* arg) -> void* {
-        static_cast<RoceConnector*>(arg)->poll_complition();
-        return nullptr;
-    }, 
-    this);
-    
-    if (status != 0) {
-        perror("error starting thread");
-    }
-
-};
+}
 
 void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     
-    // REMOVE THIS !!!!!
-    char* buf = (char*) malloc(SGE_MSG_SIZE);
-    strcpy(buf, SGE_MSG);
-
-
-
-
-
     struct ibv_send_wr sr;
     struct ibv_send_wr *bad_wr = NULL;
     int rc;
 
-    
-    char* reg_buf = memory_manager_->get_memory_region()->get_registered_buffer();
-
-    ibv_sge* ib_sge = new ibv_sge;
-    ib_sge->addr = (uintptr_t) ( reg_buf + MSG_SIZE * 5 );
-
+    ibv_sge* ib_sge = memory_manager_->get_available_sge()->get().get();
     auto p = reinterpret_cast<void*>(ib_sge->addr);
-    // memcpy(p, buf_->message, buf_->lenght);
-    // ib_sge->length = buf_->lenght;
-    
-    memcpy(p, buf, SGE_MSG_SIZE);
-    ib_sge->length = SGE_MSG_SIZE;
-    
-    ib_sge->lkey = memory_manager_->get_memory_region()->get_lkey();
+    memcpy(p, buf_->message, buf_->lenght);
+    ib_sge->length = buf_->lenght;
+    // ib_sge->lkey = memory_manager_->get_memory_region()->get_lkey();
 
     /* prepare the send work request */
     memset(&sr, 0, sizeof(sr));
@@ -273,7 +244,10 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
         puts("GRH exists in payload.");
         printf("WR ID: %lu\n",wc->wr_id);
         
-        ibv_sge *sge = memory_manager_->get_sge(wc->wr_id)->get().get();
+
+        ScatterGatherElementPtr sge_ptr = memory_manager_->get_sge(wc->wr_id);
+
+        ibv_sge *sge = sge_ptr->get().get();
         printf("SGE addr:%lu, Data addr: %lu, length: %i\n", reinterpret_cast<uint64_t>(sge), sge->addr, wc->byte_len);
 
         char *data = new char[wc->byte_len];
@@ -281,6 +255,8 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
         memcpy(data, p, wc->byte_len);
         printf("SGE message: %s\n", data);
 
+        post_recv(sge_ptr);
+        
     }
 
 }

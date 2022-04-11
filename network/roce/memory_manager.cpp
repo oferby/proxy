@@ -58,6 +58,10 @@ ScatterGatherElementPtr MemoryManager::get_available_sge() {
 
 };
 
+void MemoryManager::make_available(ScatterGatherElementPtr sge) {
+    mr_->make_available(sge);
+}
+
 
 MemoryManagerPtr create_memory_manager(AppContextPtr app_ctx) {
     return std::make_shared<MemoryManager>(app_ctx);
