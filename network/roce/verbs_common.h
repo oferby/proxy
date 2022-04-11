@@ -8,8 +8,7 @@
 #define QKEY 0x11111111
 #define GID_IDX 3
 #define IB_PORT 1
-#define GRH_SIZE 40
-#define MSG_SIZE (2048 - GRH_SIZE)
+#define MSG_SIZE 2048
 #define CQ_SIZE 10
 #define MAX_WR 10
 #define MAX_SGE 5

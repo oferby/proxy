@@ -5,7 +5,7 @@ namespace Network {
 namespace Roce {
 
 
-MemoryRegion::MemoryRegion(AppContextPtr app_ctx, int num_of_sge) : app_ctx_(app_ctx),  size_(( MSG_SIZE + GRH_SIZE ) * num_of_sge) {
+MemoryRegion::MemoryRegion(AppContextPtr app_ctx, int num_of_sge) : app_ctx_(app_ctx),  size_( MSG_SIZE * num_of_sge) {
 
     int alignment = sysconf(_SC_PAGESIZE);
     buf_ = (char*) memalign(alignment, size_);
@@ -21,19 +21,16 @@ MemoryRegion::MemoryRegion(AppContextPtr app_ctx, int num_of_sge) : app_ctx_(app
         exit(EXIT_FAILURE);
     }
 
-
-    uint32_t msg_size = MSG_SIZE + GRH_SIZE;
-
     uint64_t mem_addr = reinterpret_cast<uint64_t>(buf_);
 
     for (int i = 0; i < num_of_sge; i++) {
 
-        ScatterGatherElementPtr sge = create_sge(mem_addr, MSG_SIZE + GRH_SIZE, mr_->lkey);
+        ScatterGatherElementPtr sge = create_sge(mem_addr, MSG_SIZE, mr_->lkey);
 
         available_sge_vector.push_back(sge);
         all_sge_map[mem_addr] = sge;
 
-        mem_addr += msg_size;
+        mem_addr += MSG_SIZE;
 
     }
 
