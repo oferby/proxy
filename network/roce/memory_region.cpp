@@ -22,27 +22,31 @@ MemoryRegion::MemoryRegion(AppContextPtr app_ctx, int num_of_sge) : app_ctx_(app
     }
 
 
-    // uint32_t msg_size = MSG_SIZE + GRH_SIZE;
+    uint32_t msg_size = MSG_SIZE + GRH_SIZE;
 
-    // uint64_t mem_addr = reinterpret_cast<uint64_t>(buf_);
+    uint64_t mem_addr = reinterpret_cast<uint64_t>(buf_);
 
-    // for (int i = 0; i < num_of_sge; i++) {
+    for (int i = 0; i < num_of_sge; i++) {
 
-    //     mem_addr += msg_size;
+        ScatterGatherElementPtr sge = create_sge(mem_addr, MSG_SIZE + GRH_SIZE, mr_->lkey);
 
-    //     ScatterGatherElementPtr sge = create_sge(mem_addr, 0, mr_->lkey);
+        available_sge_vector.push_back(sge);
+        all_sge_map[mem_addr] = sge;
 
-    //     available_sge_vector.push_back(sge);
+        mem_addr += msg_size;
 
-    // }
+    }
 
-    
-    // DEBUG_MSG("memory and WRs added.");
 
     DEBUG_MSG("memory registered.");
 
 
 };
+
+ScatterGatherElementPtr MemoryRegion::get_sge(uint64_t addr) {
+    auto sge_entry = all_sge_map.find(addr);   
+    return sge_entry->second;
+}
 
 uint32_t MemoryRegion::get_lkey() {
     return mr_->lkey;

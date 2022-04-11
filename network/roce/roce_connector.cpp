@@ -1,6 +1,9 @@
 #include <errno.h>
 #include "verbs_common.h"
 #include <malloc.h>
+#include <inttypes.h>
+
+#define __STDC_FORMAT_MACROS
 
 #define SGE_MSG "SEND operation "
 #define SGE_MSG_SIZE (strlen(SGE_MSG) + 1)
@@ -107,17 +110,20 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
 
     // memory_manager_->register_memory_block();
 
-    char* reg_buf = memory_manager_->get_memory_region()->get_registered_buffer();
+    // char* reg_buf = memory_manager_->get_memory_region()->get_registered_buffer();
 
-    ibv_sge ib_sge;
+    
 
-    auto addr_ = (uintptr_t) reg_buf ;
+    // auto addr_ = reinterpret_cast<uint64_t>(reg_buf);
 
     for (int i = 0; i < 3; ++i) {
 
-        ib_sge.addr = addr_;
-        ib_sge.length = SGE_MSG_SIZE;
-        ib_sge.lkey = memory_manager_->get_memory_region()->get_lkey();
+        ibv_sge* ib_sge = memory_manager_->get_available_sge()->get().get();
+        // ib_sge->addr = addr_;
+        // ib_sge->length = MSG_SIZE;
+        // ib_sge->lkey = memory_manager_->get_memory_region()->get_lkey();
+
+        printf("POSTING: SGE addr: %lu, Data addr: %lu, Length: %u, LKey: %u\n", reinterpret_cast<uint64_t>(ib_sge), ib_sge->addr, ib_sge->length, ib_sge->lkey);
 
         ibv_recv_wr rr;
         ibv_recv_wr *bad_wr;
@@ -126,8 +132,8 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
         /* prepare the receive work request */
         memset(&rr, 0, sizeof(rr));
         rr.next = NULL;
-        rr.wr_id = ib_sge.addr;
-        rr.sg_list = &ib_sge;
+        rr.wr_id = ib_sge->addr;
+        rr.sg_list = ib_sge;
         rr.num_sge = 1;
 
         /* post the Receive Request to the RQ */
@@ -137,7 +143,7 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
         else
             fprintf(stdout, "Receive Request was posted\n");
         
-        addr_+= MSG_SIZE;
+        // addr_+= MSG_SIZE;
 
     }
 
@@ -158,6 +164,7 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
 
 void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     
+    // REMOVE THIS !!!!!
     char* buf = (char*) malloc(SGE_MSG_SIZE);
     strcpy(buf, SGE_MSG);
 
@@ -172,16 +179,23 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     
     char* reg_buf = memory_manager_->get_memory_region()->get_registered_buffer();
 
-    ibv_sge ib_sge;
-    ib_sge.addr = (uintptr_t) ( reg_buf + MSG_SIZE * 5 );
-    ib_sge.length = SGE_MSG_SIZE;
-    ib_sge.lkey = memory_manager_->get_memory_region()->get_lkey();
+    ibv_sge* ib_sge = new ibv_sge;
+    ib_sge->addr = (uintptr_t) ( reg_buf + MSG_SIZE * 5 );
+
+    auto p = reinterpret_cast<void*>(ib_sge->addr);
+    // memcpy(p, buf_->message, buf_->lenght);
+    // ib_sge->length = buf_->lenght;
+    
+    memcpy(p, buf, SGE_MSG_SIZE);
+    ib_sge->length = SGE_MSG_SIZE;
+    
+    ib_sge->lkey = memory_manager_->get_memory_region()->get_lkey();
 
     /* prepare the send work request */
     memset(&sr, 0, sizeof(sr));
     sr.next = NULL;
-    sr.wr_id = ib_sge.addr;
-    sr.sg_list = &ib_sge;
+    sr.wr_id = ib_sge->addr;
+    sr.sg_list = ib_sge;
     sr.num_sge = 1;
     sr.opcode = IBV_WR_SEND;
     sr.send_flags = IBV_SEND_SIGNALED;
@@ -214,7 +228,7 @@ void RoceConnector::poll_complition() {
         if (status > 0) {
             DEBUG_MSG("got new WC event.");
             if(wc->status == ibv_wc_status::IBV_WC_SUCCESS) {
-                printf("wid: " PRId64 ", opcode: %i\n", wc->wr_id, wc->opcode);
+                printf("wid: " PRIu64 ".\n", wc->wr_id);
                 handle_wc(wc);
             } else {
                 DEBUG_MSG("got error processing WC.");
@@ -234,12 +248,12 @@ void RoceConnector::handle_wc(std::shared_ptr<ibv_wc> wc) {
 
         case IBV_WC_SEND :
             DEBUG_MSG("got SEND completion");
-            // handle_sr();
+            handle_sr(wc);
             break;
 
         case IBV_WC_RECV :
             DEBUG_MSG("got RECV completion");
-            // handle_rr();
+            handle_rr(wc);
             break;
 
         default : 
@@ -250,6 +264,32 @@ void RoceConnector::handle_wc(std::shared_ptr<ibv_wc> wc) {
 
 
 }
+
+void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
+    
+    printf("WC: received %i\n",wc->byte_len);
+
+    if (wc->wc_flags && IBV_WC_GRH) {
+        puts("GRH exists in payload.");
+        printf("WR ID: %lu\n",wc->wr_id);
+        
+        // ibv_sge *sge = reinterpret_cast<ibv_sge*>(wc->wr_id);
+        ibv_sge *sge = memory_manager_->get_sge(wc->wr_id)->get().get();
+        printf("SGE addr:%lu, Data addr: %lu, length: %i\n", reinterpret_cast<uint64_t>(sge), sge->addr, wc->byte_len);
+
+        char *data = new char[wc->byte_len];
+        char *p = reinterpret_cast<char*>(sge->addr + GRH_SIZE);
+        memcpy(data, p, wc->byte_len);
+        printf("SGE message: %s\n", data);
+
+    }
+
+}
+
+void RoceConnector::handle_sr(std::shared_ptr<ibv_wc> wc) {
+
+}
+
 
 } // namespace Network
 } // namespace Roce

@@ -169,6 +169,7 @@ private:
     const size_t size_;
     char* buf_;
     std::vector<ScatterGatherElementPtr> available_sge_vector;
+    std::map<uint64_t, ScatterGatherElementPtr> all_sge_map;
     IbvMemoryRegionPtr mr_;
     AppContextPtr app_ctx_;
 public:
@@ -177,6 +178,7 @@ public:
     std::vector<ScatterGatherElementPtr> get_all_available_sge();
     void make_available(ScatterGatherElementPtr sge);
     ScatterGatherElementPtr get_available_sge();
+    ScatterGatherElementPtr get_sge(uint64_t addr);
     uint32_t get_lkey();
     char* get_registered_buffer();
 };
@@ -187,13 +189,12 @@ MemoryRegionPtr create_memory_region(AppContextPtr app_ctx, int num_of_sge);
 class MemoryManager {
 private:
     AppContextPtr app_ctx_;
-    std::map <uint64_t,IbvScatterGatherElementPtr> *sge_map;
-    std::vector<IbvScatterGatherElementPtr> *available_send_sge_vector;
     MemoryRegionPtr mr_;
 public:
     MemoryManager(AppContextPtr app_ctx);
     int register_memory_block();
     ScatterGatherElementPtr get_available_sge();
+    ScatterGatherElementPtr get_sge(uint64_t addr);
     MemoryRegionPtr get_memory_region();
 };
 
@@ -229,6 +230,8 @@ private:
 
     void poll_complition();
     void handle_wc(std::shared_ptr<ibv_wc> wc);
+    void handle_sr(std::shared_ptr<ibv_wc> wc);
+    void handle_rr(std::shared_ptr<ibv_wc> wc);
 
 
 public:

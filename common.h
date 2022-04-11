@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
-
 #include <sys/socket.h> 
 #include <netinet/in.h>
 #include <netdb.h>

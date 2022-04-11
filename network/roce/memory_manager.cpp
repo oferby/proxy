@@ -14,6 +14,9 @@ MemoryRegionPtr MemoryManager::get_memory_region() {
     return mr_;
 }
 
+ScatterGatherElementPtr MemoryManager::get_sge(uint64_t addr) {
+    return mr_->get_sge(addr);
+}
 
 int MemoryManager::register_memory_block() {
     DEBUG_MSG("registering memory block");
