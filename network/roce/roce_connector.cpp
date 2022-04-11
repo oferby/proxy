@@ -273,12 +273,11 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
         puts("GRH exists in payload.");
         printf("WR ID: %lu\n",wc->wr_id);
         
-        // ibv_sge *sge = reinterpret_cast<ibv_sge*>(wc->wr_id);
         ibv_sge *sge = memory_manager_->get_sge(wc->wr_id)->get().get();
         printf("SGE addr:%lu, Data addr: %lu, length: %i\n", reinterpret_cast<uint64_t>(sge), sge->addr, wc->byte_len);
 
         char *data = new char[wc->byte_len];
-        char *p = reinterpret_cast<char*>(sge->addr + GRH_SIZE);
+        char *p = reinterpret_cast<char*>(sge->addr);
         memcpy(data, p, wc->byte_len);
         printf("SGE message: %s\n", data);
 
