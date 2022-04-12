@@ -11,6 +11,13 @@
 namespace Network {
 namespace Roce {
 
+/*
+*
+*   Handles setup between 2 QPs.
+*   Build and destroy RoCE connection per TCP session.
+*
+*/
+
 RoceConnector::RoceConnector(std::string dev_name) {
 
     RoceDevicePtr device = create_roce_device(dev_name);
@@ -166,8 +173,9 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     sr.wr_id = ib_sge->addr;
     sr.sg_list = ib_sge;
     sr.num_sge = 1;
-    sr.opcode = IBV_WR_SEND;
+    sr.opcode = IBV_WR_SEND_WITH_IMM;
     sr.send_flags = IBV_SEND_SIGNALED;
+    sr.imm_data   = htonl(0x1234);
 
     rc = ibv_post_send(app_ctx_->get_qp()->get_ibv_qp().get(), &sr, &bad_wr);
     if (rc) {
@@ -248,7 +256,7 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
     char *data = new char[wc->byte_len];
     char *p = reinterpret_cast<char*>(sge->addr);
     memcpy(data, p, wc->byte_len);
-    printf("SGE message: %s\n", data);
+    printf("SGE message: %s, IMM: %u\n", data, wc->imm_data);
 
     post_recv(sge_ptr);
         

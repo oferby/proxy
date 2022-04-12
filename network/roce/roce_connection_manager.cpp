@@ -4,6 +4,14 @@
 namespace Network {
 namespace Roce {
 
+/*
+*
+*
+*   Handles multiple RoCE connections
+*
+*
+*/ 
+
 RoceConnectionManager::RoceConnectionManager() {
     DEBUG_MSG("Roce connection manager created.");
 };

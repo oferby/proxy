@@ -58,6 +58,12 @@ namespace Network {
         addr_info destination;
     };
 
+    struct client_info {
+        sockaddr_in client;
+        socklen_t slen;
+        int sd;
+    };
+
     using ProxyConfigPtr = std::shared_ptr<proxy_config>;
 
     using SockAddrInPtr = std::shared_ptr<sockaddr_in>;
