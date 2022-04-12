@@ -52,6 +52,9 @@ using IbvQp = std::shared_ptr<ibv_qp>;
 class AppContext;
 using AppContextPtr = std::shared_ptr<AppContext>;
 
+class RoceVirtualConnection;
+using RoceVirtualConnectionPtr = std::shared_ptr<RoceVirtualConnection>;
+
 class RoceDevice {
 private:
     std::string name_;
@@ -222,18 +225,20 @@ using RoceVirtualSocketPtr = std::shared_ptr<RoceVirtualSocket>;
 RoceVirtualSocketPtr create_roce_socket(ConnectionManagerBasePtr connection_manager);
 
 
-class RoceConnector {
+class RoceConnector : public std::enable_shared_from_this<RoceConnector> {
 private:
     AppContextPtr app_ctx_;
     MemoryManagerPtr memory_manager_;
     pthread_t polling_thread;
+    uint32_t next_connection_id_ = 0;
+    std::map<uint32_t, RoceVirtualConnectionPtr> roce_connection_map;
 
     void poll_complition();
     void handle_wc(std::shared_ptr<ibv_wc> wc);
     void handle_sr(std::shared_ptr<ibv_wc> wc);
     void handle_rr(std::shared_ptr<ibv_wc> wc);
     void post_recv(ScatterGatherElementPtr sge);
-
+    RoceVirtualConnectionPtr connect(uint32_t id);
 
 public:
     RoceConnector(std::string dev_name);
@@ -241,6 +246,7 @@ public:
     BufferPtr get_qp_info_msg();
     void set_pair_qp_info(BufferPtr msg);
     void send(BufferPtr buf, uint32_t id);
+    Network::Connection::ConnectionBasePtr connect();
 
 };
 using RoceConnectorPtr = std::shared_ptr<RoceConnector>;
@@ -256,6 +262,7 @@ public:
     RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_connector);
     int get_sock() override;
     void on_read() override;
+    void on_read(BufferPtr buf);
     void on_write(BufferPtr buf) override;
     void set_connection_pair(Network::Connection::ConnectionBasePtr connection_pair) override;
     void close() override;
@@ -264,12 +271,6 @@ public:
 
 using RoceVirtualConnectionPtr = std::shared_ptr<RoceVirtualConnection>;
 RoceVirtualConnectionPtr create_roce_connection(uint32_t id, RoceConnectorPtr roce_connector);
-
-
-
-
-
-
 
 class RoceListener : public Network::Listener {
 private:
@@ -292,8 +293,7 @@ class RoceClient : public Network::ClientBase {
 private:
     RoceConnectorPtr roce_connector_;
     void setup_pair_connection();
-    uint32_t next_connection_id_ = 0;
-    std::map<uint32_t, RoceVirtualConnectionPtr> roce_connection_map;
+    
 public:
     RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatcher);
     Network::Connection::ConnectionBasePtr connect();

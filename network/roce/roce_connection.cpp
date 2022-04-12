@@ -7,6 +7,7 @@ namespace Roce {
 RoceVirtualConnection::RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_connector) : id_(id), roce_connector_(roce_connector) { 
 
     DEBUG_MSG("Roce Virtual Connection created.");
+    printf("Roce connection ID: %u\n", id_);
 
 }
 
@@ -17,6 +18,11 @@ int RoceVirtualConnection::get_sock() {
 
 void RoceVirtualConnection::on_read() {
     DEBUG_MSG("Roce on_read()");
+}
+
+void RoceVirtualConnection::on_read(BufferPtr buf) {
+    DEBUG_MSG("Roce on_read(buf)");
+    printf("SGE message: %s, IMM: %u\n", buf->message, id_);
 }
 
 void RoceVirtualConnection::on_write(BufferPtr buf) {

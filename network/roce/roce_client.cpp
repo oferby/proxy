@@ -19,16 +19,7 @@ RoceClient::RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatc
 
 Network::Connection::ConnectionBasePtr RoceClient::connect() { 
 
-    DEBUG_MSG("creating new Roce Connection.");
-
-    next_connection_id_++;
-
-    RoceVirtualConnectionPtr roce_connection = create_roce_connection(next_connection_id_, roce_connector_);    
-
-    roce_connection_map[next_connection_id_] = roce_connection;
-
-    return roce_connection; 
-
+    return roce_connector_->connect();
 };
 
 

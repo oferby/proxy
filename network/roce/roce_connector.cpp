@@ -5,8 +5,8 @@
 
 #define __STDC_FORMAT_MACROS
 
-#define SGE_MSG "SEND operation "
-#define SGE_MSG_SIZE (strlen(SGE_MSG) + 1)
+// #define SGE_MSG "SEND operation "
+// #define SGE_MSG_SIZE (strlen(SGE_MSG) + 1)
 
 namespace Network {
 namespace Roce {
@@ -112,7 +112,7 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
 
     DEBUG_MSG("QP info set");
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 10; ++i) {
         post_recv(memory_manager_->get_available_sge());
     }
 
@@ -158,6 +158,8 @@ void RoceConnector::post_recv(ScatterGatherElementPtr sge) {
 
 void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     
+    printf("sending Roce with id: %u\n", id);
+
     struct ibv_send_wr sr;
     struct ibv_send_wr *bad_wr = NULL;
     int rc;
@@ -174,8 +176,8 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     sr.sg_list = ib_sge;
     sr.num_sge = 1;
     sr.opcode = IBV_WR_SEND_WITH_IMM;
-    sr.send_flags = IBV_SEND_SIGNALED;
-    sr.imm_data   = htonl(0x1234);
+    sr.send_flags = IBV_WC_WITH_IMM;
+    sr.imm_data   = htonl(id);
 
     rc = ibv_post_send(app_ctx_->get_qp()->get_ibv_qp().get(), &sr, &bad_wr);
     if (rc) {
@@ -253,18 +255,59 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
     ibv_sge *sge = sge_ptr->get().get();
     // printf("SGE addr:%lu, Data addr: %lu, length: %i\n", reinterpret_cast<uint64_t>(sge), sge->addr, wc->byte_len);
 
-    char *data = new char[wc->byte_len];
+    BufferPtr input_buf = create_buffer(wc->byte_len);
+
+    // char *data = new char[wc->byte_len];
     char *p = reinterpret_cast<char*>(sge->addr);
-    memcpy(data, p, wc->byte_len);
-    printf("SGE message: %s, IMM: %u\n", data, wc->imm_data);
+    // memcpy(data, p, wc->byte_len);
+    memcpy(input_buf->message, p, wc->byte_len);
 
     post_recv(sge_ptr);
-        
+
+    auto id = ntohl(wc->imm_data);
+
+    auto it = roce_connection_map.find(id);
+    if (it != roce_connection_map.end()) {
+        DEBUG_MSG("using existing connection");
+        auto roce_connection = it->second;
+        roce_connection->on_read(input_buf);
+
+    } else {
+
+        RoceVirtualConnectionPtr roce_connection = connect(id);
+        roce_connection->on_read(input_buf);
+    }
+         
 
 }
 
 void RoceConnector::handle_sr(std::shared_ptr<ibv_wc> wc) {
 
+}
+
+// listener side
+RoceVirtualConnectionPtr RoceConnector::connect(uint32_t id) {
+
+     DEBUG_MSG("creating new Roce Connection on listener side.");
+
+    RoceVirtualConnectionPtr roce_connection = create_roce_connection(id, shared_from_this());    
+
+    roce_connection_map[id] = roce_connection;
+
+    return roce_connection;
+
+}
+
+// client side
+Network::Connection::ConnectionBasePtr RoceConnector::connect() {
+    
+    DEBUG_MSG("creating new Roce Connection on client side");
+
+    RoceVirtualConnectionPtr roce_connection = create_roce_connection(++next_connection_id_, shared_from_this());    
+
+    roce_connection_map[next_connection_id_] = roce_connection;
+
+    return roce_connection; 
 }
 
 

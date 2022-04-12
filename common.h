@@ -26,7 +26,7 @@
 #include <vector>
 #include <thread>
 
-#define BUF_SIZE 4096
+#define BUF_SIZE 2048
 
 #define PURE =0;
 
