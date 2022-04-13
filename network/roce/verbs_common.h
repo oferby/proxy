@@ -55,6 +55,9 @@ using AppContextPtr = std::shared_ptr<AppContext>;
 class RoceVirtualConnection;
 using RoceVirtualConnectionPtr = std::shared_ptr<RoceVirtualConnection>;
 
+class RoceConnector;
+using RoceConnectorPtr = std::shared_ptr<RoceConnector>;
+
 class RoceDevice {
 private:
     std::string name_;
@@ -178,7 +181,7 @@ public:
     MemoryRegion(AppContextPtr app_ctx, int num_of_sge);
     std::vector<ScatterGatherElementPtr> get_available_sge(int num);
     std::vector<ScatterGatherElementPtr> get_all_available_sge();
-    void make_available(ScatterGatherElementPtr sge);
+    void make_available(uint64_t addr);
     ScatterGatherElementPtr get_available_sge();
     ScatterGatherElementPtr get_sge(uint64_t addr);
     uint32_t get_lkey();
@@ -198,31 +201,11 @@ public:
     ScatterGatherElementPtr get_available_sge();
     ScatterGatherElementPtr get_sge(uint64_t addr);
     MemoryRegionPtr get_memory_region();
-    void make_available(ScatterGatherElementPtr sge);
+    void make_available(uint64_t addr);
 };
 
 using MemoryManagerPtr = std::shared_ptr<MemoryManager>;
 MemoryManagerPtr create_memory_manager(AppContextPtr app_ctx);
-
-
-
-class RoceVirtualSocket : public SocketBase {
-public:
-    RoceVirtualSocket(ConnectionManagerBasePtr connection_manager);
-    int connect(Network::addr_info info);
-    int get();
-    void on_connect();
-    void set_client_side(Network::ClientBasePtr client);
-    int bind(Network::addr_info info);
-    int listen();
-    SocketBasePtr accept();
-    BufferPtr recv();
-    void send(BufferPtr buf);
-    void close();
-
-};
-using RoceVirtualSocketPtr = std::shared_ptr<RoceVirtualSocket>;
-RoceVirtualSocketPtr create_roce_socket(ConnectionManagerBasePtr connection_manager);
 
 
 class RoceConnector : public std::enable_shared_from_this<RoceConnector> {
@@ -231,6 +214,7 @@ private:
     MemoryManagerPtr memory_manager_;
     pthread_t polling_thread;
     uint32_t next_connection_id_ = 0;
+    Network::ClientBasePtr client_;
     std::map<uint32_t, RoceVirtualConnectionPtr> roce_connection_map;
 
     void poll_complition();
@@ -247,11 +231,10 @@ public:
     void set_pair_qp_info(BufferPtr msg);
     void send(BufferPtr buf, uint32_t id);
     Network::Connection::ConnectionBasePtr connect();
+    void set_client_side(Network::ClientBasePtr client);
 
 };
-using RoceConnectorPtr = std::shared_ptr<RoceConnector>;
 RoceConnectorPtr create_roce_connector(std::string dev_name);
-
 
 
 class RoceVirtualConnection : public Network::Connection::ConnectionBase {
@@ -271,6 +254,30 @@ public:
 
 using RoceVirtualConnectionPtr = std::shared_ptr<RoceVirtualConnection>;
 RoceVirtualConnectionPtr create_roce_connection(uint32_t id, RoceConnectorPtr roce_connector);
+
+
+
+
+class RoceVirtualSocket : public SocketBase {
+private:
+    RoceConnectorPtr roce_connector_;
+public:
+    // RoceVirtualSocket(ConnectionManagerBasePtr connection_manager);
+    RoceVirtualSocket(RoceConnectorPtr roce_connector);
+    int connect(Network::addr_info info);
+    int get();
+    void on_connect();
+    void set_client_side(Network::ClientBasePtr client);
+    int bind(Network::addr_info info);
+    int listen();
+    SocketBasePtr accept();
+    BufferPtr recv();
+    void send(BufferPtr buf);
+    void close();
+
+};
+using RoceVirtualSocketPtr = std::shared_ptr<RoceVirtualSocket>;
+RoceVirtualSocketPtr create_roce_socket(ConnectionManagerBasePtr connection_manager);
 
 class RoceListener : public Network::Listener {
 private:

@@ -5,7 +5,7 @@ namespace Tcp {
 
 TcpClient::TcpClient(Network::addr_info target, Event::DispatcherBasePtr dispatcher) {
 
-    DEBUG_MSG("creating new tcp listener");
+    DEBUG_MSG("creating new tcp client");
 
     dispatcher_ = dispatcher;
     target_ = target;

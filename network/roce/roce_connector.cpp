@@ -278,21 +278,30 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
         roce_connection->on_read(input_buf);
     }
          
-
+    memory_manager_->make_available(wc->wr_id);
+    
 }
 
 void RoceConnector::handle_sr(std::shared_ptr<ibv_wc> wc) {
+
+    memory_manager_->make_available(wc->wr_id);
 
 }
 
 // listener side
 RoceVirtualConnectionPtr RoceConnector::connect(uint32_t id) {
 
-     DEBUG_MSG("creating new Roce Connection on listener side.");
+    DEBUG_MSG("creating new Roce Connection on listener side.");
 
     RoceVirtualConnectionPtr roce_connection = create_roce_connection(id, shared_from_this());    
 
     roce_connection_map[id] = roce_connection;
+
+    auto connection_pair = client_->connect();
+    roce_connection->set_connection_pair(connection_pair);
+
+    connection_pair->set_connection_pair(roce_connection);
+
 
     return roce_connection;
 
@@ -308,6 +317,10 @@ Network::Connection::ConnectionBasePtr RoceConnector::connect() {
     roce_connection_map[next_connection_id_] = roce_connection;
 
     return roce_connection; 
+}
+
+void RoceConnector::set_client_side(Network::ClientBasePtr client) {
+    client_ = client;
 }
 
 

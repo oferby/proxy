@@ -5,8 +5,9 @@
 namespace Network {
 namespace Proxy {
 
-class ProxyPath {
+class ProxyPath : public std::enable_shared_from_this<ProxyPath> {
 private:
+    Network::ProxyConfigPtr config_;
     Network::ListenerPtr listener_;
     Network::ClientBasePtr client_;
     Event::DispatcherBasePtr dispatcher_;
@@ -17,6 +18,7 @@ public:
     ProxyPath(Network::ProxyConfigPtr config, Event::DispatcherBasePtr dispatcher);
     Network::ListenerPtr get_listener();
     Network::ClientBasePtr get_client();
+    Network::ProxyConfigPtr get_config();
 };
 
 using ProxyPathPtr = std::shared_ptr<ProxyPath>;

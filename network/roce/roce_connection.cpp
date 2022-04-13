@@ -23,6 +23,9 @@ void RoceVirtualConnection::on_read() {
 void RoceVirtualConnection::on_read(BufferPtr buf) {
     DEBUG_MSG("Roce on_read(buf)");
     printf("SGE message: %s, IMM: %u\n", buf->message, id_);
+
+    connection_pair_->on_write(buf);
+    
 }
 
 void RoceVirtualConnection::on_write(BufferPtr buf) {

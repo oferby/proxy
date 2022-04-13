@@ -14,18 +14,16 @@ RoceListener::RoceListener(Network::addr_info info, Event::DispatcherBasePtr dis
 
     roce_connector_ = create_roce_connector(info.dev_name);
 
-    sd_ = create_roce_socket(dispatcher_->get_connection_manager());
-
     setup_comm_server();
     
 };
 
 Network::SocketBasePtr RoceListener::get_socket() {
-    return sd_;
+    return std::make_shared<RoceVirtualSocket>(roce_connector_);
 };
 
 void RoceListener::set_client_side(Network::ClientBasePtr client) {
-    sd_->set_client_side(client);
+    roce_connector_->set_client_side(client);
 };
 
 void RoceListener::setup_comm_server() {

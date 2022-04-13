@@ -58,8 +58,8 @@ ScatterGatherElementPtr MemoryManager::get_available_sge() {
 
 };
 
-void MemoryManager::make_available(ScatterGatherElementPtr sge) {
-    mr_->make_available(sge);
+void MemoryManager::make_available(uint64_t addr) {
+    mr_->make_available(addr);
 }
 
 
