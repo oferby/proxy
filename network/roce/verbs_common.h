@@ -12,6 +12,7 @@
 #define CQ_SIZE 10
 #define MAX_WR 10
 #define MAX_SGE 5
+#define NUM_OF_TOTAL_SGE 20
 #define HELLO_MSG_SIZE (sizeof "0000:000000:000000:00000000000000000000000000000000")
 
 #define ROCE_COMMUNICATION_MGR_PORT 9000
@@ -244,7 +245,7 @@ RoceConnectorPtr create_roce_connector(std::string dev_name);
 class RoceVirtualConnection : public Network::Connection::ConnectionBase {
 private:
     uint32_t id_;
-    bool sending_ = false;
+    uint32_t sending_ {0};
     bool pending_close_ = false;
     RoceConnectorPtr roce_connector_;
 public:
@@ -253,6 +254,7 @@ public:
     void on_read() override;
     void on_read(BufferPtr buf);
     void on_write(BufferPtr buf) override;
+    void on_write_complete();
     void set_connection_pair(Network::Connection::ConnectionBasePtr connection_pair) override;
     void close() override;
     void on_close();

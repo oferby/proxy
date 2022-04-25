@@ -24,19 +24,28 @@ void RoceVirtualConnection::on_read(BufferPtr buf) {
     DEBUG_MSG("Roce on_read(buf)");
     // printf("SGE message: %s, IMM: %u\n", buf->message, id_);
 
-    sending_ = true;
-    connection_pair_->on_write(buf);
-    sending_ = false;
-
-    if (pending_close_)
-        this->close();
     
+    connection_pair_->on_write(buf);
+
 }
 
 void RoceVirtualConnection::on_write(BufferPtr buf) {
+    
+    ++sending_;
+    
     DEBUG_MSG("Roce on_write()");
+    
     roce_connector_->send(buf, id_);
 
+}
+
+void RoceVirtualConnection::on_write_complete() {
+    
+    --sending_;
+
+    if (pending_close_) {
+        close();
+    }
 }
 
 void RoceVirtualConnection::set_connection_pair(Network::Connection::ConnectionBasePtr connection_pair) {
@@ -45,15 +54,15 @@ void RoceVirtualConnection::set_connection_pair(Network::Connection::ConnectionB
 
 // on client side
 void RoceVirtualConnection::close() {
-    DEBUG_MSG("Roce close()");
 
-    if (sending_) {
-        DEBUG_MSG("pending close");
-        pending_close_ = true;
-    } else {
-        roce_connector_->close(id_);
-        pending_close_ = false;
+    if (sending_ > 0) {
+        DEBUG_MSG("RoCE close pending");
+        return;
     }
+
+    DEBUG_MSG("RoCE close()");
+
+    roce_connector_->close(id_);
         
 }
 

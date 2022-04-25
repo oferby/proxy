@@ -6,7 +6,7 @@ namespace Roce {
     
 MemoryManager::MemoryManager(AppContextPtr app_ctx) : app_ctx_(app_ctx) {
 
-    mr_ = create_memory_region(app_ctx_, 20);
+    mr_ = create_memory_region(app_ctx_, NUM_OF_TOTAL_SGE);
 
 }
 
@@ -21,7 +21,7 @@ ScatterGatherElementPtr MemoryManager::get_sge(uint64_t addr) {
 int MemoryManager::register_memory_block() {
     DEBUG_MSG("registering memory block");
 
-    std::vector<ScatterGatherElementPtr> sge_vector =  mr_->get_available_sge(10);
+    std::vector<ScatterGatherElementPtr> sge_vector =  mr_->get_available_sge(NUM_OF_TOTAL_SGE / 2);
 
     for (int i = 0; i < sge_vector.size(); i++ ) {
 

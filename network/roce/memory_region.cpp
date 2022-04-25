@@ -8,6 +8,7 @@ namespace Roce {
 MemoryRegion::MemoryRegion(AppContextPtr app_ctx, int num_of_sge) : app_ctx_(app_ctx),  size_( MSG_SIZE * num_of_sge) {
 
     int alignment = sysconf(_SC_PAGESIZE);
+    
     buf_ = (char*) memalign(alignment, size_);
 
     if (!buf_) {
@@ -99,6 +100,9 @@ void MemoryRegion::make_available(uint64_t addr) {
 ScatterGatherElementPtr MemoryRegion::get_available_sge() {
 
     // printf("sge size before getting is %u\n",available_sge_vector.size());
+
+    if (available_sge_vector.size() == 0) 
+        return nullptr;
 
     ScatterGatherElementPtr sge = available_sge_vector.back();
     available_sge_vector.pop_back();

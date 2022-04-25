@@ -164,7 +164,12 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     struct ibv_send_wr *bad_wr = NULL;
     int rc;
 
-    ibv_sge* ib_sge = memory_manager_->get_available_sge()->get().get();
+    ScatterGatherElementPtr sge;
+    do {
+        sge = memory_manager_->get_available_sge();
+    } while ( sge == nullptr);
+
+    ibv_sge* ib_sge = sge->get().get();
     auto p = reinterpret_cast<void*>(ib_sge->addr);
     memcpy(p, buf_->message, buf_->lenght);
     ib_sge->length = buf_->lenght;
@@ -296,6 +301,17 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
 void RoceConnector::handle_sr(std::shared_ptr<ibv_wc> wc) {
 
     memory_manager_->make_available(wc->wr_id);
+
+    auto id = ntohl(wc->imm_data);
+
+    auto it = roce_connection_map.find(id);
+    if (it != roce_connection_map.end()) {
+        auto roce_connection = it->second;
+        roce_connection->on_write_complete();
+
+    } else {
+        DEBUG_MSG("could not find RoCE connection");
+    }
 
 }
 
