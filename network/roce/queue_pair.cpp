@@ -68,7 +68,7 @@ void QueuePair::set_remote_qp_info(QueuePairInfoPtr qp_info) {
 
 	ibv_qp_attr attr = {};
     attr.qp_state		= IBV_QPS_RTR;
-    attr.path_mtu		= IBV_MTU_512; // TODO
+    attr.path_mtu		= IBV_MTU_1024; // TODO
     attr.dest_qp_num		= qp_info->qpn;
     attr.rq_psn			= qp_info->psn;
     attr.max_dest_rd_atomic	= 1;

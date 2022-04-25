@@ -13,9 +13,10 @@ int Connection::get_sock() {
 };
 
 void Connection::on_read() {
-    // DEBUG_MSG("got read event.");
     
-    size_t result;
+    DEBUG_MSG("got read event.");
+    
+    int result;
     size_t left = buf_->size;
     buf_->lenght = 0;
     auto msg = buf_->message;
@@ -24,7 +25,7 @@ void Connection::on_read() {
         
         result = ::recv(sd_, msg, left, 0);
         // printf("read result: %d\n", buf_->lenght);
-        if (result == 0)
+        if (result <= 0)
             break;
         
         buf_->lenght += result;
@@ -36,18 +37,21 @@ void Connection::on_read() {
 
     }
 
-    connection_pair_->on_write(buf_);
+    if (buf_->lenght > 0)
+        connection_pair_->on_write(buf_);
 
     if (result == 0) {
         DEBUG_MSG("connection closed. clearing socket events.");
         on_close();
-    } else if (result < 0) {
+    } else if (result < 0 & errno != EAGAIN) {
         DEBUG_MSG("error on_read()");
     }
 
 };
 
 void Connection::on_write(BufferPtr buf) {
+
+    DEBUG_MSG("Connection::on_write(BufferPtr buf)");
     // printf("writing %i bytes to client %i\n", size, sd_);
 
     buf->lenght = ::write(sd_, buf->message, buf->lenght);
