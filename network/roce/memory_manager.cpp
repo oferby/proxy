@@ -53,12 +53,13 @@ int MemoryManager::register_memory_block() {
 };
 
 ScatterGatherElementPtr MemoryManager::get_available_sge() {
-
+    // DEBUG_MSG("Roce get_available_sge");
     return mr_->get_available_sge();
 
 };
 
 void MemoryManager::make_available(uint64_t addr) {
+    // DEBUG_MSG("Roce make_available");
     mr_->make_available(addr);
 }
 

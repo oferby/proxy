@@ -221,8 +221,11 @@ private:
     void handle_wc(std::shared_ptr<ibv_wc> wc);
     void handle_sr(std::shared_ptr<ibv_wc> wc);
     void handle_rr(std::shared_ptr<ibv_wc> wc);
+    void handle_control(std::shared_ptr<ibv_wc> wc);
     void post_recv(ScatterGatherElementPtr sge);
+    BufferPtr get_data(std::shared_ptr<ibv_wc> wc);
     RoceVirtualConnectionPtr connect(uint32_t id);
+    
 
 public:
     RoceConnector(std::string dev_name);
@@ -231,6 +234,7 @@ public:
     void set_pair_qp_info(BufferPtr msg);
     void send(BufferPtr buf, uint32_t id);
     Network::Connection::ConnectionBasePtr connect();
+    void close(uint32_t id);
     void set_client_side(Network::ClientBasePtr client);
 
 };
@@ -240,6 +244,8 @@ RoceConnectorPtr create_roce_connector(std::string dev_name);
 class RoceVirtualConnection : public Network::Connection::ConnectionBase {
 private:
     uint32_t id_;
+    bool sending_ = false;
+    bool pending_close_ = false;
     RoceConnectorPtr roce_connector_;
 public:
     RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_connector);
@@ -249,6 +255,7 @@ public:
     void on_write(BufferPtr buf) override;
     void set_connection_pair(Network::Connection::ConnectionBasePtr connection_pair) override;
     void close() override;
+    void on_close();
     
 };
 

@@ -204,7 +204,7 @@ void RoceConnector::poll_complition() {
         }
 
         if (status > 0) {
-            DEBUG_MSG("got new WC event.");
+            // DEBUG_MSG("got new WC event.");
             if(wc->status == ibv_wc_status::IBV_WC_SUCCESS) {
                 handle_wc(wc);
             } else {
@@ -219,7 +219,7 @@ void RoceConnector::poll_complition() {
 
 void RoceConnector::handle_wc(std::shared_ptr<ibv_wc> wc) {
 
-    DEBUG_MSG("handling WC.");
+    // DEBUG_MSG("handling WC.");
 
     switch (wc->opcode) {
 
@@ -230,7 +230,10 @@ void RoceConnector::handle_wc(std::shared_ptr<ibv_wc> wc) {
 
         case IBV_WC_RECV :
             DEBUG_MSG("got RECV completion");
-            handle_rr(wc);
+            if (wc->imm_data == 0) 
+                handle_control(wc);
+            else 
+                handle_rr(wc);
             break;
 
         default : 
@@ -242,13 +245,7 @@ void RoceConnector::handle_wc(std::shared_ptr<ibv_wc> wc) {
 
 }
 
-void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
-    
-    DEBUG_MSG("handling RR");
-
-    // printf("WC: received %i\n",wc->byte_len);
-
-    // printf("WR ID: %lu\n",wc->wr_id);
+BufferPtr RoceConnector::get_data(std::shared_ptr<ibv_wc> wc) {
 
     ScatterGatherElementPtr sge_ptr = memory_manager_->get_sge(wc->wr_id);
 
@@ -262,7 +259,19 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
     // memcpy(data, p, wc->byte_len);
     memcpy(input_buf->message, p, wc->byte_len);
 
-    post_recv(sge_ptr);
+    return input_buf;
+
+}
+
+void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
+    
+    DEBUG_MSG("handling RR");
+
+    // printf("WC: received %i\n",wc->byte_len);
+
+    // printf("WR ID: %lu\n",wc->wr_id);
+
+    BufferPtr input_buf = get_data(wc);
 
     auto id = ntohl(wc->imm_data);
 
@@ -278,14 +287,40 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
         roce_connection->on_read(input_buf);
     }
          
-    memory_manager_->make_available(wc->wr_id);
     
+    ScatterGatherElementPtr sge = memory_manager_->get_sge(wc->wr_id);
+    post_recv(sge);
+
 }
 
 void RoceConnector::handle_sr(std::shared_ptr<ibv_wc> wc) {
 
     memory_manager_->make_available(wc->wr_id);
 
+}
+
+//server side close
+void RoceConnector::handle_control(std::shared_ptr<ibv_wc> wc) {
+    
+    DEBUG_MSG("handling Control");
+
+    // TODO: create better message struct
+    // for now we are only getting connection id info
+
+    BufferPtr input_buf = get_data(wc);
+
+    uint32_t* tmp_id = (uint32_t*) input_buf->message;
+    uint32_t id_to_close = ntohl(*tmp_id);
+
+    printf("request to close connection id %u\n", id_to_close);
+
+    auto it = roce_connection_map.find(id_to_close);
+
+    it->second->on_close();
+
+    ScatterGatherElementPtr sge = memory_manager_->get_sge(wc->wr_id);
+    post_recv(sge);
+    
 }
 
 // listener side
@@ -317,6 +352,20 @@ Network::Connection::ConnectionBasePtr RoceConnector::connect() {
     roce_connection_map[next_connection_id_] = roce_connection;
 
     return roce_connection; 
+}
+
+// client side close
+void RoceConnector::close(uint32_t id) {
+
+    DEBUG_MSG("roce connection close");
+
+    BufferPtr buf = create_buffer(sizeof(uint32_t));
+    auto id_ = htonl(id);
+    memcpy(buf->message, &id_, sizeof(uint32_t));
+
+    send(buf, 0);
+
+    roce_connection_map.erase(id);
 }
 
 void RoceConnector::set_client_side(Network::ClientBasePtr client) {

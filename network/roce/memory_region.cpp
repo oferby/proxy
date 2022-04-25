@@ -90,10 +90,15 @@ std::vector<ScatterGatherElementPtr> MemoryRegion::get_all_available_sge() {
 void MemoryRegion::make_available(uint64_t addr) {
 
     available_sge_vector.insert(available_sge_vector.begin(), all_sge_map[addr]);
+
+    // printf("sge size after adding is %u\n",available_sge_vector.size());
+
 }
 
 
 ScatterGatherElementPtr MemoryRegion::get_available_sge() {
+
+    // printf("sge size before getting is %u\n",available_sge_vector.size());
 
     ScatterGatherElementPtr sge = available_sge_vector.back();
     available_sge_vector.pop_back();

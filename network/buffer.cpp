@@ -3,8 +3,7 @@
 namespace Network
 {
     
-Buffer::Buffer(size_t len) {
-    lenght = len;
+Buffer::Buffer(size_t len) : lenght(len), size(len) {
     if (len > 0)
         message = new char[len];
 };

@@ -15,22 +15,34 @@ int Connection::get_sock() {
 void Connection::on_read() {
     // DEBUG_MSG("got read event.");
     
-    ssize_t result;
-    int i;
+    size_t result;
+    size_t left = buf_->size;
+    buf_->lenght = 0;
+    auto msg = buf_->message;
 
-    size_t size;
     while (1) {
-
-        buf_->lenght = ::recv(sd_, buf_->message, BUF_SIZE, 0);
+        
+        result = ::recv(sd_, msg, left, 0);
         // printf("read result: %d\n", buf_->lenght);
-        if (buf_->lenght <= 0)
+        if (result == 0)
             break;
-        connection_pair_->on_write(buf_);
+        
+        buf_->lenght += result;
+        msg += result;
+        left = buf_->size - buf_->lenght;
+
+        if (left == 0)
+            break;
+
     }
 
-    if (buf_->lenght == 0) {
+    connection_pair_->on_write(buf_);
+
+    if (result == 0) {
         DEBUG_MSG("connection closed. clearing socket events.");
         on_close();
+    } else if (result < 0) {
+        DEBUG_MSG("error on_read()");
     }
 
 };
