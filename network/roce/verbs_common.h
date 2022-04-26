@@ -217,14 +217,15 @@ private:
     uint32_t next_connection_id_ = 0;
     Network::ClientBasePtr client_;
     std::map<uint32_t, RoceVirtualConnectionPtr> roce_connection_map;
+    std::map<uint64_t,uint32_t> connection_id_map_;
 
     void poll_complition();
-    void handle_wc(std::shared_ptr<ibv_wc> wc);
-    void handle_sr(std::shared_ptr<ibv_wc> wc);
-    void handle_rr(std::shared_ptr<ibv_wc> wc);
-    void handle_control(std::shared_ptr<ibv_wc> wc);
+    void handle_wc(ibv_wc* wc);
+    void handle_sr(ibv_wc* wc);
+    void handle_rr(ibv_wc* wc);
+    void handle_control(ibv_wc* wc);
     void post_recv(ScatterGatherElementPtr sge);
-    BufferPtr get_data(std::shared_ptr<ibv_wc> wc);
+    BufferPtr get_data(ibv_wc* wc);
     RoceVirtualConnectionPtr connect(uint32_t id);
     
 
