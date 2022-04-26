@@ -51,7 +51,7 @@ void Connection::on_read() {
 
 void Connection::on_write(BufferPtr buf) {
 
-    DEBUG_MSG("Connection::on_write(BufferPtr buf)");
+    DEBUG_MSG("TCP on_write(buf)");
     // printf("writing %i bytes to client %i\n", size, sd_);
 
     buf->lenght = ::write(sd_, buf->message, buf->lenght);
@@ -87,12 +87,12 @@ ConnectionBasePtr Connection::get_connection_pair() {
 void Connection::clear_connection_pair() {
     DEBUG_MSG("clearing connection pair.");
     connection_pair_.reset();
- }
+}
 
- void Connection::close() {
+void Connection::close() {
     DEBUG_MSG("closing connection.");
     ::close(sd_);
- }
+}
 
 Connection::~Connection() {
     DEBUG_MSG("connection destroyed.");

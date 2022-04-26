@@ -250,6 +250,7 @@ private:
     RoceConnectorPtr roce_connector_;
 public:
     RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_connector);
+    ~RoceVirtualConnection();
     int get_sock() override;
     void on_read() override;
     void on_read(BufferPtr buf);

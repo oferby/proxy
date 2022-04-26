@@ -11,6 +11,10 @@ RoceVirtualConnection::RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_
 
 }
 
+RoceVirtualConnection::~RoceVirtualConnection() {
+    DEBUG_MSG("RoCE connection distroyed");
+}
+
 
 int RoceVirtualConnection::get_sock() {
     return 1;
@@ -41,6 +45,8 @@ void RoceVirtualConnection::on_write(BufferPtr buf) {
 
 void RoceVirtualConnection::on_write_complete() {
     
+    DEBUG_MSG("Roce on_write_complete()");
+
     --sending_;
 
     if (pending_close_) {
@@ -55,12 +61,12 @@ void RoceVirtualConnection::set_connection_pair(Network::Connection::ConnectionB
 // on client side
 void RoceVirtualConnection::close() {
 
+    DEBUG_MSG("RoCE close()");
+
     if (sending_ > 0) {
         DEBUG_MSG("RoCE close pending");
         return;
     }
-
-    DEBUG_MSG("RoCE close()");
 
     roce_connector_->close(id_);
         
@@ -68,7 +74,12 @@ void RoceVirtualConnection::close() {
 
 // on listener side
 void RoceVirtualConnection::on_close() {
+    
     DEBUG_MSG("Roce on_close");
+    
+    if (pending_close_)
+        return;
+
     connection_pair_->close();
 }
 

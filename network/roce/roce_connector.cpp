@@ -160,9 +160,7 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     
     printf("sending Roce with id: %u\n", id);
 
-    struct ibv_send_wr sr;
-    struct ibv_send_wr *bad_wr = NULL;
-    int rc;
+
 
     ScatterGatherElementPtr sge;
     do {
@@ -175,14 +173,19 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     ib_sge->length = buf_->lenght;
 
     /* prepare the send work request */
-    memset(&sr, 0, sizeof(sr));
+    ibv_send_wr sr {0};
+    ibv_send_wr *bad_wr = NULL;
+    int rc;
+
+    // memset(&sr, 0, sizeof(sr));
     sr.next = NULL;
     sr.wr_id = ib_sge->addr;
     sr.sg_list = ib_sge;
     sr.num_sge = 1;
     sr.opcode = IBV_WR_SEND_WITH_IMM;
-    sr.send_flags = IBV_WC_WITH_IMM;
+    sr.send_flags = IBV_SEND_SIGNALED;
     sr.imm_data   = htonl(id);
+    
 
     rc = ibv_post_send(app_ctx_->get_qp()->get_ibv_qp().get(), &sr, &bad_wr);
     if (rc) {
@@ -300,9 +303,10 @@ void RoceConnector::handle_rr(std::shared_ptr<ibv_wc> wc) {
 
 void RoceConnector::handle_sr(std::shared_ptr<ibv_wc> wc) {
 
-    memory_manager_->make_available(wc->wr_id);
-
     auto id = ntohl(wc->imm_data);
+    printf("handle_sr() for RoCE connection id %u\n", id);
+    
+    memory_manager_->make_available(wc->wr_id);
 
     auto it = roce_connection_map.find(id);
     if (it != roce_connection_map.end()) {
@@ -310,7 +314,8 @@ void RoceConnector::handle_sr(std::shared_ptr<ibv_wc> wc) {
         roce_connection->on_write_complete();
 
     } else {
-        DEBUG_MSG("could not find RoCE connection");
+        DEBUG_MSG("could not find RoCE connection. Probably closed.");
+        
     }
 
 }
@@ -332,7 +337,11 @@ void RoceConnector::handle_control(std::shared_ptr<ibv_wc> wc) {
 
     auto it = roce_connection_map.find(id_to_close);
 
-    it->second->on_close();
+    if (it != roce_connection_map.end()) {
+        it->second->on_close();
+    } {
+        DEBUG_MSG("RoCE connection already closed.");
+    }
 
     ScatterGatherElementPtr sge = memory_manager_->get_sge(wc->wr_id);
     post_recv(sge);
@@ -366,6 +375,8 @@ Network::Connection::ConnectionBasePtr RoceConnector::connect() {
     RoceVirtualConnectionPtr roce_connection = create_roce_connection(++next_connection_id_, shared_from_this());    
 
     roce_connection_map[next_connection_id_] = roce_connection;
+
+    printf("new RoCE connection added with id %u\n", next_connection_id_);
 
     return roce_connection; 
 }
