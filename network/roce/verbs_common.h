@@ -237,6 +237,7 @@ public:
     void send(BufferPtr buf, uint32_t id);
     Network::Connection::ConnectionBasePtr connect();
     void close(uint32_t id);
+    void on_close(uint32_t id);
     void set_client_side(Network::ClientBasePtr client);
 
 };

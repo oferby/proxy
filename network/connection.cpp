@@ -100,12 +100,13 @@ void Connection::clear_connection_pair() {
 // remote close
 void Connection::close() {
     DEBUG_MSG("TCP close()");
+    connection_pair_.reset();
     connection_manager_->close_connection(sd_);
     ::close(sd_);
 }
 
 Connection::~Connection() {
-    DEBUG_MSG("connection destroyed.");
+    DEBUG_MSG("~Connection()");
 }
 
 ConnectionPtr create_connection(int sd, ConnectionManagerBasePtr connection_manager) {

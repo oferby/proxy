@@ -12,7 +12,7 @@ RoceVirtualConnection::RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_
 }
 
 RoceVirtualConnection::~RoceVirtualConnection() {
-    DEBUG_MSG("RoCE connection distroyed");
+    DEBUG_MSG("~RoceVirtualConnection()");
 }
 
 
@@ -81,6 +81,8 @@ void RoceVirtualConnection::on_close() {
         return;
 
     connection_pair_->close();
+    connection_pair_.reset();
+    roce_connector_->on_close(id_);
 }
 
 RoceVirtualConnectionPtr create_roce_connection(uint32_t id, RoceConnectorPtr roce_connector) {

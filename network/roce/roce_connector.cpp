@@ -349,7 +349,7 @@ void RoceConnector::handle_control(ibv_wc* wc) {
 
     if (it != roce_connection_map.end()) {
         it->second->on_close();
-    } {
+    } else {
         DEBUG_MSG("RoCE connection already closed.");
     }
 
@@ -394,7 +394,7 @@ Network::Connection::ConnectionBasePtr RoceConnector::connect() {
 // client side close
 void RoceConnector::close(uint32_t id) {
 
-    DEBUG_MSG("roce connection close");
+    DEBUG_MSG("RoceConnector close()");
 
     BufferPtr buf = create_buffer(sizeof(uint32_t));
     auto id_ = htonl(id);
@@ -402,6 +402,12 @@ void RoceConnector::close(uint32_t id) {
 
     send(buf, 0);
 
+    roce_connection_map.erase(id);
+}
+
+// listener side
+void RoceConnector::on_close(uint32_t id) {
+    DEBUG_MSG("RoceConnector on_close()");
     roce_connection_map.erase(id);
 }
 
