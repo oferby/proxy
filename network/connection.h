@@ -21,11 +21,13 @@ public:
     ConnectionBasePtr get_connection_pair();
     void clear_connection_pair();
     void close();
+    void on_close() override;
+    ConnectionManagerBasePtr get_connection_manager();
     ~Connection();
 private:
     int sd_;
     ConnectionManagerBasePtr connection_manager_;
-    void on_close();
+    
     
     BufferPtr buf_;
     

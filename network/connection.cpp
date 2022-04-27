@@ -6,7 +6,11 @@ namespace Connection {
 Connection::Connection(int sd, ConnectionManagerBasePtr connection_manager) :
     sd_(sd), connection_manager_(connection_manager) {
         buf_ = create_buffer(BUF_SIZE);
-    };
+};
+
+ConnectionManagerBasePtr Connection::get_connection_manager() {
+    return connection_manager_;
+}
 
 int Connection::get_sock() {
     return sd_;
@@ -68,9 +72,13 @@ void Connection::on_write(BufferPtr buf) {
     
 }
 
+// local close
 void Connection::on_close() {
-    DEBUG_MSG("removing connection.");
+    DEBUG_MSG("TCP on_close()");
     connection_manager_->close_connection(sd_);
+    connection_pair_->close();
+    clear_connection_pair();
+    ::close(sd_);
 }
 
 void Connection::set_connection_pair(ConnectionBasePtr connection_pair) {
@@ -89,8 +97,10 @@ void Connection::clear_connection_pair() {
     connection_pair_.reset();
 }
 
+// remote close
 void Connection::close() {
-    DEBUG_MSG("closing connection.");
+    DEBUG_MSG("TCP close()");
+    connection_manager_->close_connection(sd_);
     ::close(sd_);
 }
 

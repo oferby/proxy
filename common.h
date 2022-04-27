@@ -125,6 +125,7 @@ namespace Connection {
         virtual void on_write(BufferPtr buf) PURE;
         virtual void set_connection_pair(ConnectionBasePtr connection_pair) PURE;
         virtual void close() PURE;
+        virtual void on_close() PURE;
         
     };
     

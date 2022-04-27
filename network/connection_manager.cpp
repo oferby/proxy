@@ -22,18 +22,7 @@ Connection::ConnectionBasePtr ConnectionManager::create_connection(int sd) {
 void ConnectionManager::close_connection(int sd) {
     DEBUG_MSG("releasing connections");
     event_scheduler_->unregister_for_event(sd);
-    
-    auto connection = sock_map[sd];
-    auto connection_pair = std::static_pointer_cast<Connection::Connection>(connection->get_connection_pair());
-
-    connection_pair->clear_connection_pair();
-    connection->clear_connection_pair();
-    
-    connection->close();
-    connection_pair->close();
-    
     sock_map.erase(sd);
-    connection.reset();
     
 }
 

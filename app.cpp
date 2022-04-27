@@ -15,6 +15,8 @@ int main(int argc, char** argv) {
     if (argc < 7)
         print_usage();
 
+    Event::initialize();
+
     WorkerPtr worker1 = get_worker("worker1");
 
     Network::ProxyConfigPtr config = get_ptr();
