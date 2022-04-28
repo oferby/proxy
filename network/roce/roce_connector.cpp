@@ -286,7 +286,7 @@ void RoceConnector::handle_rr(ibv_wc* wc) {
     auto it = roce_connection_map.find(id);
     if (it != roce_connection_map.end()) {
         // DEBUG_MSG("using existing connection");
-        printf("using existing connection id: \n", id);
+        printf("using existing connection id: %u\n", id);
         auto roce_connection = it->second;
         roce_connection->on_read(input_buf);
 
