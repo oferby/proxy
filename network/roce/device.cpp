@@ -28,7 +28,7 @@ RoceDevice::RoceDevice(std::string dev_name) :name_(dev_name) {
     
     tmp_dev_list = dev_list;
     bool found = false;
-    while (tmp_dev_list)
+    while (true)
     {
         ib_dev = *tmp_dev_list;
         if (!ib_dev) {
@@ -76,9 +76,7 @@ IbvContextPtr RoceDevice::get_context() { return ctx_; };
 uint16_t RoceDevice::get_lid() { return port_info_.lid; };
 ibv_gid* RoceDevice::get_gid() { return &gid_;};
 
-RoceDevicePtr create_roce_device(std::string dev_name) {
-    return std::make_shared<RoceDevice>(dev_name);
-}
+
 
 } // namespace Roce    
 } // namespace Network

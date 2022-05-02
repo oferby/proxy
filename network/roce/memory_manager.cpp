@@ -18,8 +18,7 @@ ScatterGatherElementPtr MemoryManager::get_sge(uint64_t addr) {
     return mr_->get_sge(addr);
 }
 
-int MemoryManager::register_memory_block() {
-    DEBUG_MSG("registering memory block");
+int MemoryManager::port_receive() {
 
     std::vector<ScatterGatherElementPtr> sge_vector =  mr_->get_available_sge(NUM_OF_TOTAL_SGE / 2);
 
@@ -46,7 +45,7 @@ int MemoryManager::register_memory_block() {
 
     }
 
-    DEBUG_MSG("memory block registered.");
+    DEBUG_MSG("post_recv done.");
 
     return 1;
 

@@ -8,9 +8,9 @@
 #define QKEY 0x11111111
 #define GID_IDX 3
 #define IB_PORT 1
-#define MSG_SIZE 2048
+#define MSG_SIZE 256
 #define CQ_SIZE 10
-#define MAX_WR 10
+#define MAX_WR 4
 #define MAX_SGE 5
 #define NUM_OF_TOTAL_SGE 20
 #define HELLO_MSG_SIZE (sizeof "0000:000000:000000:00000000000000000000000000000000")
@@ -75,8 +75,20 @@ public:
 
 };
 using RoceDevicePtr = std::shared_ptr<RoceDevice>;
-RoceDevicePtr create_roce_device(std::string dev_name);
 
+class RoceDeviceManager {
+private:
+    std::map<std::string,RoceDevicePtr> device_map;
+    RoceDeviceManager() {};
+public:
+
+    static RoceDeviceManager* get_instance() {
+        static RoceDeviceManager instance;
+        return &instance;
+    }
+
+    RoceDevicePtr create_or_get_device(std::string dev_name);
+};
 
 
 class ProtectionDomain {
@@ -89,7 +101,6 @@ public:
 
 using ProtectionDomainPtr = std::shared_ptr<ProtectionDomain>;
 ProtectionDomainPtr create_protection_domain(RoceDevicePtr device);
-
 
 
 class CompletionQueue {
@@ -198,7 +209,7 @@ private:
     MemoryRegionPtr mr_;
 public:
     MemoryManager(AppContextPtr app_ctx);
-    int register_memory_block();
+    int port_receive();
     ScatterGatherElementPtr get_available_sge();
     ScatterGatherElementPtr get_sge(uint64_t addr);
     MemoryRegionPtr get_memory_region();
@@ -211,9 +222,10 @@ MemoryManagerPtr create_memory_manager(AppContextPtr app_ctx);
 
 class RoceConnector : public std::enable_shared_from_this<RoceConnector> {
 private:
+    RoceDeviceManager* device_manager_ = RoceDeviceManager::get_instance();
     AppContextPtr app_ctx_;
     MemoryManagerPtr memory_manager_;
-    pthread_t polling_thread;
+    std::thread polling_thread;
     uint32_t next_connection_id_ = 0;
     Network::ClientBasePtr client_;
     std::map<uint32_t, RoceVirtualConnectionPtr> roce_connection_map;

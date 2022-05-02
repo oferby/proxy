@@ -11,28 +11,14 @@ namespace Event {
 
 class EventScheduler : public EventSchedulerBase {
     private:
-        EventScheduler() {
-
-            DEBUG_MSG("creating scheduler");
-
-            base_ = event_base_new();
-            if (!base_) {
-                perror("error creating base event.");
-                exit(EXIT_FAILURE);
-            }
-
-        };
+        
         event_base* base_;
         std::map<int, event*> event_map;
 
     public:
-        static EventScheduler& get_instance() {
-            static EventScheduler instance;
-            return instance;
-        }
-        
+        EventScheduler();
         void run();
-        void register_for_event(int fd, OnEventCallback cb, void* arg);
+        void register_for_event(int fd, OnEventCallback cb, void* arg, bool persist);
         void unregister_for_event(int fd);
         void make_nonblocking(int fd);
 

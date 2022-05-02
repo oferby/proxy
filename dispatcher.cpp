@@ -7,6 +7,7 @@ Dispatcher::Dispatcher() {
     event_scheduler_ = create_event_scheduler();
     connection_manager_ = Network::create_connection_manager(event_scheduler_);
     roce_connection_manager_ = Network::Roce::create_roce_connection_manager();
+
 }
 
 void Dispatcher::new_proxy_config(Network::ProxyConfigPtr config) {
@@ -30,5 +31,10 @@ Event::EventSchedulerBasePtr Dispatcher::get_event_scheduler() {
 Network::Roce::RoceConnectionManagerPtr Dispatcher::get_roce_connection_manager() {
     return roce_connection_manager_;
 }
+
+DispatcherPtr get_dispatcher() {
+    return std::make_shared<Dispatcher>();
+}
+
 } // namespace Event
 

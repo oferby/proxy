@@ -20,7 +20,7 @@ TcpListener::TcpListener(Network::addr_info info, Event::DispatcherBasePtr dispa
             DEBUG_MSG("got new event");
             static_cast<Network::Socket*>(arg)->on_connect();
         }, 
-        static_cast<void*>(sd_.get()));
+        static_cast<void*>(sd_.get()), true);
     
     sd_->listen();
 

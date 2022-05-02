@@ -5,7 +5,14 @@ namespace Roce {
 
 CompletionQueue::CompletionQueue(RoceDevicePtr device) {
 
-    cq_ = std::shared_ptr<ibv_cq>(ibv_create_cq(device->get_context(), CQ_SIZE, nullptr, nullptr, 0));
+    ibv_cq* cq = ibv_create_cq(device->get_context(), CQ_SIZE, nullptr, nullptr, 0);
+
+    if (!cq) {
+        perror("could not create CQ\n");
+        exit(EXIT_FAILURE);
+    }
+        
+    cq_ = std::shared_ptr<ibv_cq>(cq);
 
     DEBUG_MSG("RoCE completion queue created.");
 }

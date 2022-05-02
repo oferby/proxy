@@ -1,5 +1,5 @@
 #include "worker.h"
-#include <pthread.h>
+// #include <pthread.h>
 
 Worker::Worker(std::string name) {
 
@@ -7,35 +7,26 @@ Worker::Worker(std::string name) {
 
     this->name = name;
     
-    dispatcher_ = Event::Dispatcher::getInstance();
+    dispatcher_ = Event::get_dispatcher();
     dispatcher_->get_roce_connection_manager()->set_dispatcher(dispatcher_);
 
 }
 
 void Worker::start() {
 
-    int status = pthread_create(&worker_thread, nullptr, 
-        [](void* arg) -> void* {
-            static_cast<Worker*>(arg)->run();
-            return nullptr;
-        }, 
-        this);
-        
-    if (status != 0) {
-        perror("error starting thread");
-    }
+    worker_thread = std::thread(run, dispatcher_, &worker_thread);
 
 }
 
-void Worker::run() {
-
-    dispatcher_->run();
-
+void Worker::run(Event::DispatcherPtr dispatcher, std::thread* worker_thread) {
+    
+    printf("Running thread id: %u\n", worker_thread->get_id());
+    dispatcher->run();
 }
 
 
 void Worker::join() {
-    pthread_join(worker_thread, nullptr);
+    worker_thread.join();
 }
 
 void Worker::new_proxy_config(Network::ProxyConfigPtr config){
@@ -43,7 +34,7 @@ void Worker::new_proxy_config(Network::ProxyConfigPtr config){
 }
 
 WorkerPtr get_worker(std::string name) {
-    return std::make_unique<Worker>(name);
+    return std::make_shared<Worker>(name);
 }
 
 

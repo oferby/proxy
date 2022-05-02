@@ -20,14 +20,14 @@ namespace Roce {
 
 RoceConnector::RoceConnector(std::string dev_name) {
 
-    RoceDevicePtr device = create_roce_device(dev_name);
-    
-    ProtectionDomainPtr pd =  create_protection_domain(device);
+    RoceDevicePtr device = device_manager_->create_or_get_device(dev_name);
 
     CompletionQueuePtr cq = create_completion_queue(device);
 
     // SharedReceiveQueuePtr srq = create_srq(pd);
 
+    ProtectionDomainPtr pd =  create_protection_domain(device);
+    
     app_ctx_ = create_app_context(device, pd, cq, nullptr);
 
     QueuePairPtr qp = create_queue_pair(app_ctx_);
@@ -117,17 +117,7 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
     }
 
     DEBUG_MSG("starting polling thread.");
-    
-    int status = pthread_create(&polling_thread, nullptr, 
-    [](void* arg) -> void* {
-        static_cast<RoceConnector*>(arg)->poll_complition();
-        return nullptr;
-    }, 
-    this);
-    
-    if (status != 0) {
-        perror("error starting thread");
-    }
+    polling_thread = std::thread(&RoceConnector::poll_complition, this);
 
 };
 

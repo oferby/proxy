@@ -13,7 +13,7 @@ Connection::ConnectionBasePtr ConnectionManager::create_connection(int sd) {
 
     event_scheduler_->register_for_event(sd, [](evutil_socket_t fd, short event, void* arg){
         static_cast<Connection::Connection*>(arg)->on_read();
-    }, (void*) conn.get());
+    }, (void*) conn.get(), true);
 
     return std::static_pointer_cast<Connection::ConnectionBase>(conn);
 

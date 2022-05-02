@@ -90,7 +90,7 @@ namespace Event {
     class EventSchedulerBase {
     public:
         virtual void run() PURE;
-        virtual void register_for_event(int fd, OnEventCallback cb, void* arg) PURE;
+        virtual void register_for_event(int fd, OnEventCallback cb, void* arg, bool persist) PURE;
         virtual void unregister_for_event(int fd) PURE;
         virtual void make_nonblocking(int fd) PURE;
     };

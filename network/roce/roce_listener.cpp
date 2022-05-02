@@ -44,7 +44,7 @@ void RoceListener::setup_comm_server() {
             DEBUG_MSG("got new event");
             static_cast<RoceListener*>(arg)->on_connect();
         }, 
-        this);
+        this, false);
     
     tcp_sd_->listen();
 
