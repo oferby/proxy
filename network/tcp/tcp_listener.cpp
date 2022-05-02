@@ -17,7 +17,7 @@ TcpListener::TcpListener(Network::addr_info info, Event::DispatcherBasePtr dispa
     
     dispatcher_->get_event_scheduler()->register_for_event(sd_->get(), 
         [] (evutil_socket_t fd, short event, void* arg) {
-            DEBUG_MSG("got new event");
+            DEBUG_MSG("got TCP new event");
             static_cast<Network::Socket*>(arg)->on_connect();
         }, 
         static_cast<void*>(sd_.get()), true);

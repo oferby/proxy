@@ -25,6 +25,8 @@
 #include <map>
 #include <vector>
 #include <thread>
+#include <sys/types.h>
+#include <sys/syscall.h>
 
 #define BUF_SIZE 2048
 

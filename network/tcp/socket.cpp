@@ -108,9 +108,14 @@ int Socket::get() {
     return sd_;
 }
 
+
+
 void Socket::on_connect() {
     DEBUG_MSG("got new connection");
-
+    
+    pid_t x = syscall(__NR_gettid);
+    printf("pthread id: %u\n", x);
+    
     sockaddr_in client;
     socklen_t slen = sizeof(client);
     int new_sock = ::accept(sd_, (sockaddr*) &client, &slen);
