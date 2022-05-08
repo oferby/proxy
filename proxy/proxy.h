@@ -1,20 +1,24 @@
-#include "../common.h"
-#include "../tcp/tcp_listener.h"
-#include "../tcp/tcp_client.h"
+#include "../network/tcp/tcp_listener.h"
+#include "../network/tcp/tcp_client.h"
+#include "../network/roce/verbs_common.h"
 
 namespace Network {
 namespace Proxy {
 
-class ProxyPath {
+class ProxyPath : public std::enable_shared_from_this<ProxyPath> {
 private:
-    Network::Tcp::TcpListenerPtr listener_;
-    Network::Tcp::TcpClientPtr client_;
+    Network::ProxyConfigPtr config_;
+    Network::ListenerPtr listener_;
+    Network::ClientBasePtr client_;
     Event::DispatcherBasePtr dispatcher_;
+    Network::ListenerPtr get_listener(Network::addr_info info);
+    Network::ClientBasePtr get_client(Network::addr_info info, Network::ListenerPtr listener);
 
 public:
     ProxyPath(Network::ProxyConfigPtr config, Event::DispatcherBasePtr dispatcher);
-    Network::Tcp::TcpListenerPtr get_listener();
-    Network::Tcp::TcpClientPtr get_client();
+    Network::ListenerPtr get_listener();
+    Network::ClientBasePtr get_client();
+    Network::ProxyConfigPtr get_config();
 };
 
 using ProxyPathPtr = std::shared_ptr<ProxyPath>;

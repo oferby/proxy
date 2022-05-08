@@ -3,11 +3,20 @@
 
 namespace Event { 
 
-void EventScheduler::register_for_event(int fd, OnEventCallback cb, void* arg) {
+EventScheduler::EventScheduler() {
+    DEBUG_MSG("creating scheduler");
+
+    base_ = event_base_new();
+    if (!base_) {
+        perror("error creating base event.");
+        exit(EXIT_FAILURE);
+    }
+}
+ 
+void EventScheduler::register_for_event(int fd, OnEventCallback cb, void* arg, bool persist) {
     DEBUG_MSG("registering new event");
 
-    // auto new_event = event_new(base_, fd, EV_READ | EV_PERSIST, cb, (void*) base_);
-    auto new_event = event_new(base_, fd, EV_READ | EV_PERSIST, cb, arg);
+    auto new_event = event_new(base_, fd, persist ?  EV_READ | EV_PERSIST : EV_READ, cb, arg);
     event_add(new_event, nullptr);
     event_map[fd] = new_event;
 
@@ -33,11 +42,11 @@ void EventScheduler::run() {
 }
 
 void initialize() {
-    evthread_use_pthreads();
+    // evthread_use_pthreads();
 }
 
 EventSchedulerPtr create_event_scheduler(){
-    return std::make_shared<EventScheduler>(EventScheduler::get_instance());
+    return std::make_shared<EventScheduler>();
 }
 
 } //namespace Event

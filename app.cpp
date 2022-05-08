@@ -1,51 +1,97 @@
 #include "common.h"
 #include "worker.h"
-#include "tcp/tcp_listener.h"
-
 
 Network::ProxyConfigPtr get_ptr() {
     return std::make_shared<Network::proxy_config>();
 };
 
 void print_usage() {
-    puts("USAGE: <source-ip> <source-port> <dest-ip> <dest-port>");
+    puts("USAGE: <source-ip> <source-port> <TCP/ROCE> [dev-name] <dest-ip> <dest-port> <TCP/ROCE> [dev-name]");
     exit(0);
 }
 
 int main(int argc, char** argv) {
 
-    if (argc != 5)
+    if (argc < 7)
         print_usage();
 
-    WorkerPtr worker1 = get_worker("worker1");
+    // Event::initialize();
 
-    Network::ProxyConfigPtr config = get_ptr();
-    
-    config->source = {
-            .ip_addr = argv[1],
-            .port = atoi(argv[2])
-    };
+    printf("Main thread id: %u\n", reinterpret_cast<uint64_t>(std::this_thread::get_id));
 
-    config->destination = {
-        .ip_addr = argv[3],
-        .port = atoi(argv[4])
-    };
-    worker1->new_proxy_config(config);
+    std::vector<WorkerPtr> worker_vector;
 
-    // config->source = {
-    //         .ip_addr = "localhost",
-    //         .port = 8586
-    // };
-    // config->destination = {
-    //     .ip_addr = "localhost",
-    //     .port = 5000
-    // };
-    // worker1->new_proxy_config(config);
+    for (int i = 0; i < 2; i++) {
 
+        std::string worker_name = "worker";
+        worker_name.append(std::to_string(i));
+        WorkerPtr worker = get_worker(worker_name);
 
-    worker1->start();
+        Network::ProxyConfigPtr config = get_ptr();
+        
+        config->source = {
+                .ip_addr = argv[1],
+                .port = atoi(argv[2])
+                
+        };
 
-    DEBUG_MSG("joining worker1");
-    worker1->join();    
+        int arg_shift = 0;
+        
+        std::string s_transport = argv[3];
+        if (s_transport == "TCP")
+            config->source.type = Network::TCP;
+        
+        else if (s_transport == "ROCE")
+        {
+
+            if (argc < 8 ) {
+                print_usage();
+            }
+
+            config->source.type = Network::RoCE;
+            config->source.dev_name = argv[4];
+            arg_shift++;
+            
+        } else {
+            puts("unknown local transport");
+            exit(EXIT_FAILURE);
+        }
+
+        config->destination = {
+            .ip_addr = argv[4 + arg_shift],
+            .port = atoi(argv[5 + arg_shift])
+        };
+
+        std::string t_transport = argv[6 + arg_shift];
+        if (t_transport == "TCP")
+            config->destination.type = Network::TCP;
+        
+        else if (t_transport == "ROCE")
+        {
+            if (argc < 8 ) {
+                print_usage();
+            }       
+            
+            config->destination.type = Network::RoCE;
+            config->destination.dev_name = argv[7 + arg_shift];
+            arg_shift++;
+
+        } else {
+            puts("unknown remote transport");
+            exit(EXIT_FAILURE);
+        }    
+
+        worker->new_proxy_config(config);
+        worker->start();
+
+        worker_vector.push_back(worker);
+
+        
+    }
+
+    DEBUG_MSG("joining worker");
+
+    WorkerPtr worker = worker_vector.back();
+    worker->join();    
     
 }

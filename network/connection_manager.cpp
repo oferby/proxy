@@ -13,7 +13,7 @@ Connection::ConnectionBasePtr ConnectionManager::create_connection(int sd) {
 
     event_scheduler_->register_for_event(sd, [](evutil_socket_t fd, short event, void* arg){
         static_cast<Connection::Connection*>(arg)->on_read();
-    }, (void*) conn.get());
+    }, (void*) conn.get(), true);
 
     return std::static_pointer_cast<Connection::ConnectionBase>(conn);
 
@@ -22,19 +22,7 @@ Connection::ConnectionBasePtr ConnectionManager::create_connection(int sd) {
 void ConnectionManager::close_connection(int sd) {
     DEBUG_MSG("releasing connections");
     event_scheduler_->unregister_for_event(sd);
-    auto sock = sock_map[sd];
-    sock->close();
-        
-    auto connection_pair = std::static_pointer_cast<Connection::Connection>(sock->get_connection_pair());
-    auto client_sock = sock_map[connection_pair->get_sock()];
-    client_sock->close();
-    event_scheduler_->unregister_for_event(connection_pair->get_sock());
-    sock_map.erase(client_sock->get_sock());
-    client_sock.reset();
-    connection_pair->clear_connection_pair();
-
     sock_map.erase(sd);
-    sock.reset();
     
 }
 

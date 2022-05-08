@@ -10,10 +10,10 @@ class Worker {
 
     private:
         std::string name;
-        pthread_t worker_thread;
+        std::thread worker_thread;
         std::function<void()> thread_func_;
         Event::DispatcherPtr dispatcher_;
-        void run();
+        static void run(Event::DispatcherPtr dispatcher, std::thread* worker_thread);
 
     public:
 
@@ -26,7 +26,7 @@ class Worker {
 };
 
 
-using WorkerPtr = std::unique_ptr<Worker>;
+using WorkerPtr = std::shared_ptr<Worker>;
 WorkerPtr get_worker(std::string name);
 
 #endif
