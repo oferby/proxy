@@ -12,7 +12,7 @@ RoceListener::RoceListener(Network::addr_info info, Event::DispatcherBasePtr dis
     info_ = info;
     dispatcher_ = dispatcher; 
 
-    roce_connector_ = create_roce_connector(info.dev_name);
+    roce_connector_ = create_roce_connector(info.dev_name, true);
 
     setup_comm_server();
     
@@ -30,11 +30,11 @@ void RoceListener::setup_comm_server() {
 
     DEBUG_MSG("creating RoCE Communication Server");
 
-    tcp_sd_ =  Network::create_socket(nullptr, true);
+    tcp_sd_ =  Network::create_socket(nullptr, false);
 
     addr_info info = {
         .ip_addr = "localhost",
-        .port = ROCE_COMMUNICATION_MGR_PORT
+        .port = ROCE_COMMUNICATION_MGR_PORT + info_.worker_id
     };
 
     int status = tcp_sd_->bind(info);

@@ -222,6 +222,7 @@ MemoryManagerPtr create_memory_manager(AppContextPtr app_ctx);
 
 class RoceConnector : public std::enable_shared_from_this<RoceConnector> {
 private:
+    const bool is_server_side_;
     RoceDeviceManager* device_manager_ = RoceDeviceManager::get_instance();
     AppContextPtr app_ctx_;
     MemoryManagerPtr memory_manager_;
@@ -242,7 +243,7 @@ private:
     
 
 public:
-    RoceConnector(std::string dev_name);
+    RoceConnector(std::string dev_name, bool is_server_side);
     QueuePairInfoPtr get_qp_info();
     BufferPtr get_qp_info_msg();
     void set_pair_qp_info(BufferPtr msg);
@@ -253,7 +254,7 @@ public:
     void set_client_side(Network::ClientBasePtr client);
 
 };
-RoceConnectorPtr create_roce_connector(std::string dev_name);
+RoceConnectorPtr create_roce_connector(std::string dev_name, bool is_server_side);
 
 
 class RoceVirtualConnection : public Network::Connection::ConnectionBase {

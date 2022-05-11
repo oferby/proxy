@@ -15,13 +15,13 @@ int main(int argc, char** argv) {
     if (argc < 7)
         print_usage();
 
-    // Event::initialize();
+    Event::initialize();
 
     printf("Main thread id: %u\n", reinterpret_cast<uint64_t>(std::this_thread::get_id));
 
     std::vector<WorkerPtr> worker_vector;
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 4; i++) {
 
         std::string worker_name = "worker";
         worker_name.append(std::to_string(i));
@@ -32,8 +32,10 @@ int main(int argc, char** argv) {
         config->source = {
                 .ip_addr = argv[1],
                 .port = atoi(argv[2])
-                
         };
+
+        config->source.worker_id = i;
+
 
         int arg_shift = 0;
         
@@ -61,6 +63,8 @@ int main(int argc, char** argv) {
             .ip_addr = argv[4 + arg_shift],
             .port = atoi(argv[5 + arg_shift])
         };
+
+        config->destination.worker_id = i;
 
         std::string t_transport = argv[6 + arg_shift];
         if (t_transport == "TCP")

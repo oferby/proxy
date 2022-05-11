@@ -53,6 +53,7 @@ namespace Network {
         int port;
         transport type;
         std::string dev_name;
+        int worker_id;
     };
 
     struct proxy_config {

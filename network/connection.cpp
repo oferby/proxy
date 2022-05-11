@@ -6,6 +6,7 @@ namespace Connection {
 Connection::Connection(int sd, ConnectionManagerBasePtr connection_manager) :
     sd_(sd), connection_manager_(connection_manager) {
         buf_ = create_buffer(BUF_SIZE);
+    printf("new connection created with socket id: %u\n", sd_);
 };
 
 ConnectionManagerBasePtr Connection::get_connection_manager() {
@@ -75,10 +76,16 @@ void Connection::on_write(BufferPtr buf) {
 // local close
 void Connection::on_close() {
     DEBUG_MSG("TCP on_close()");
+    printf("socket id: %u\n", sd_);
     connection_manager_->close_connection(sd_);
     connection_pair_->close();
     clear_connection_pair();
-    ::close(sd_);
+    int status = ::close(sd_);
+    if (status < 0) {
+        DEBUG_MSG("error trying to close socket");
+    }
+    else
+        DEBUG_MSG("TCP on_close() - socket closed.");
 }
 
 void Connection::set_connection_pair(ConnectionBasePtr connection_pair) {

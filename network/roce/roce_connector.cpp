@@ -18,7 +18,7 @@ namespace Roce {
 *
 */
 
-RoceConnector::RoceConnector(std::string dev_name) {
+RoceConnector::RoceConnector(std::string dev_name, bool is_server_side) : is_server_side_(is_server_side) {
 
     RoceDevicePtr device = device_manager_->create_or_get_device(dev_name);
 
@@ -38,8 +38,8 @@ RoceConnector::RoceConnector(std::string dev_name) {
 
 };
 
-RoceConnectorPtr create_roce_connector(std::string dev_name) {
-    return std::make_shared<RoceConnector>(dev_name);
+RoceConnectorPtr create_roce_connector(std::string dev_name, bool is_server_side) {
+    return std::make_shared<RoceConnector>(dev_name, is_server_side);
 };
 
 QueuePairInfoPtr RoceConnector::get_qp_info() {
@@ -283,8 +283,19 @@ void RoceConnector::handle_rr(ibv_wc* wc) {
 
     } else {
 
-        RoceVirtualConnectionPtr roce_connection = connect(id);
-        roce_connection->on_read(input_buf);
+        // we open new connection only if the connector is on server side.
+        // in case we get RR for TCP session that already closed,
+        // probably by client.
+        if (is_server_side_) {
+            RoceVirtualConnectionPtr roce_connection = connect(id);
+            roce_connection->on_read(input_buf);
+        } 
+        else 
+        {
+            DEBUG_MSG("unexpected RR from unknown ID");
+            printf("connection id: %u\n", id);
+        }
+        
     }
          
     
@@ -308,6 +319,11 @@ void RoceConnector::handle_sr(ibv_wc* wc) {
     printf("handle_sr() for RoCE connection id %u\n", id);
     
     memory_manager_->make_available(wc->wr_id);
+
+    // ID 0 is control connection id
+    if (id == 0) {
+        return;
+    }
 
     auto it2 = roce_connection_map.find(id);
     if (it2 != roce_connection_map.end()) {

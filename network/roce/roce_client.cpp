@@ -9,7 +9,7 @@ RoceClient::RoceClient(Network::addr_info info, Event::DispatcherBasePtr dispatc
     target_ = info;
     dispatcher_ = dispatcher;
 
-    roce_connector_ = create_roce_connector(info.dev_name);
+    roce_connector_ = create_roce_connector(info.dev_name, false);
 
     DEBUG_MSG("Roce client created.");
 
@@ -32,7 +32,7 @@ void RoceClient::setup_pair_connection() {
 
     addr_info remote_info = {
         .ip_addr = target_.ip_addr,
-        .port = ROCE_COMMUNICATION_MGR_PORT
+        .port = ROCE_COMMUNICATION_MGR_PORT + target_.worker_id
     };
 
     using namespace std::chrono_literals;

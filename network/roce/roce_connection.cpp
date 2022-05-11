@@ -65,6 +65,7 @@ void RoceVirtualConnection::close() {
 
     if (sending_ > 0) {
         DEBUG_MSG("RoCE close pending");
+        pending_close_ = true;
         return;
     }
 

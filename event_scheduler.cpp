@@ -42,7 +42,11 @@ void EventScheduler::run() {
 }
 
 void initialize() {
-    // evthread_use_pthreads();
+    int status = evthread_use_pthreads();
+    if (status < 0) {
+        puts("error setting libevent pthreads.");
+        exit(EXIT_FAILURE);
+    }
 }
 
 EventSchedulerPtr create_event_scheduler(){
