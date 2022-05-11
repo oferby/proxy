@@ -8,10 +8,10 @@
 #define QKEY 0x11111111
 #define GID_IDX 3
 #define IB_PORT 1
-#define MSG_SIZE 256
+#define MSG_SIZE 1024
 #define CQ_SIZE 10
-#define MAX_WR 4
-#define MAX_SGE 5
+#define MAX_WR 20
+#define MAX_SGE 1
 #define NUM_OF_TOTAL_SGE 20
 #define HELLO_MSG_SIZE (sizeof "0000:000000:000000:00000000000000000000000000000000")
 

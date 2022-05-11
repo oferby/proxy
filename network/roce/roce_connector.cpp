@@ -213,7 +213,8 @@ void RoceConnector::poll_complition() {
             if(wc.status == ibv_wc_status::IBV_WC_SUCCESS) {
                 handle_wc(&wc);
             } else {
-                DEBUG_MSG("got error processing WC.");
+                DEBUG_MSG("*** got error processing WC:");
+                puts(ibv_wc_status_str(wc.status));
             }
 
         }

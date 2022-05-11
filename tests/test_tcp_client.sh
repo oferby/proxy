@@ -1,1 +1,1 @@
-./bin/proxy localhost 8585 TCP 192.168.70.4 8686 TCP
+./bin/proxy localhost 8585 TCP 192.168.70.6 8586 TCP

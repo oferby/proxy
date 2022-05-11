@@ -28,7 +28,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
-#define BUF_SIZE 2048
+#define BUF_SIZE 1024
 
 #define PURE =0;
 

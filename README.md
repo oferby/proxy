@@ -20,3 +20,7 @@ simple TCP proxy
     ibdev2netdev
     ibv_devices
     sudo /usr/local/bin/hiroce gids
+
+
+## memlock
+    check that we have enough memory using: ulimit -l

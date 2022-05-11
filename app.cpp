@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
     std::vector<WorkerPtr> worker_vector;
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 1; i++) {
 
         std::string worker_name = "worker";
         worker_name.append(std::to_string(i));
