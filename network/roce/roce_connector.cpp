@@ -1,6 +1,5 @@
 #include <errno.h>
 #include "verbs_common.h"
-#include <malloc.h>
 #include <inttypes.h>
 
 #define __STDC_FORMAT_MACROS
@@ -75,8 +74,6 @@ BufferPtr RoceConnector::get_qp_info_msg() {
     BufferPtr hello_msg = create_buffer(sizeof(struct cm_con_data_t));
     memcpy(hello_msg->message,local_con_data, sizeof(struct cm_con_data_t));
 
-
-
     return hello_msg;
 }
 
@@ -112,7 +109,7 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
 
     DEBUG_MSG("QP info set");
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < (NUM_OF_TOTAL_SGE / 2) ; ++i) {
         post_recv(memory_manager_->get_available_sge());
     }
 
@@ -123,9 +120,10 @@ void RoceConnector::set_pair_qp_info(BufferPtr msg) {
 
 void RoceConnector::post_recv(ScatterGatherElementPtr sge) {
 
-        ibv_sge* ib_sge = sge->get().get();
-
-        // printf("POSTING: SGE addr: %lu, Data addr: %lu, Length: %u, LKey: %u\n", reinterpret_cast<uint64_t>(ib_sge), ib_sge->addr, ib_sge->length, ib_sge->lkey);
+        ibv_sge* ib_sge = new ibv_sge;
+        ib_sge->addr = sge->get_addr();
+        ib_sge->length = sge->get_length();
+        ib_sge->lkey = sge->get_lkey();
 
         ibv_recv_wr rr;
         ibv_recv_wr *bad_wr;
@@ -148,20 +146,21 @@ void RoceConnector::post_recv(ScatterGatherElementPtr sge) {
 
 void RoceConnector::send(BufferPtr buf_, uint32_t id) {
     
-    printf("sending Roce with id: %u\n", id);
-
-
+    // printf("sending Roce with id: %u\n", id);
 
     ScatterGatherElementPtr sge;
     do {
         sge = memory_manager_->get_available_sge();
     } while ( sge == nullptr);
 
-    ibv_sge* ib_sge = sge->get().get();
-    auto p = reinterpret_cast<void*>(ib_sge->addr);
-    memcpy(p, buf_->message, buf_->lenght);
+    ibv_sge* ib_sge = new ibv_sge;
+    ib_sge->addr = sge->get_addr();
+    ib_sge->lkey = sge->get_lkey();
     ib_sge->length = buf_->lenght;
 
+    char* p = reinterpret_cast<char*>(ib_sge->addr);
+    memcpy(p, buf_->message, buf_->lenght);
+    
     /* prepare the send work request */
     ibv_send_wr sr {0};
     ibv_send_wr *bad_wr = NULL;
@@ -182,12 +181,10 @@ void RoceConnector::send(BufferPtr buf_, uint32_t id) {
 
     rc = ibv_post_send(app_ctx_->get_qp()->get_ibv_qp().get(), &sr, &bad_wr);
     if (rc) {
-        fprintf(stderr, "failed to post SR\n");
-        exit(EXIT_FAILURE);
+        printf("*******    ERROR in post send: %u   ********\n", rc);        
     }
         
     DEBUG_MSG("SR posted.");
-
 
 }
 
@@ -253,13 +250,16 @@ void RoceConnector::handle_wc(ibv_wc* wc) {
 
 BufferPtr RoceConnector::get_data(ibv_wc* wc) {
 
-    ScatterGatherElementPtr sge_ptr = memory_manager_->get_sge(wc->wr_id);
+    ScatterGatherElementPtr sge = memory_manager_->get_sge(wc->wr_id);
 
-    ibv_sge *sge = sge_ptr->get().get();
+    ibv_sge* ib_sge = new ibv_sge;
+    ib_sge->addr = sge->get_addr();
+    ib_sge->length = sge->get_length();
+    ib_sge->lkey = sge->get_lkey();
 
     BufferPtr input_buf = create_buffer(wc->byte_len);
 
-    char *p = reinterpret_cast<char*>(sge->addr);
+    char *p = reinterpret_cast<char*>(sge->get_addr());
     memcpy(input_buf->message, p, wc->byte_len);
 
     return input_buf;
@@ -277,7 +277,7 @@ void RoceConnector::handle_rr(ibv_wc* wc) {
     auto it = roce_connection_map.find(id);
     if (it != roce_connection_map.end()) {
         // DEBUG_MSG("using existing connection");
-        printf("using existing connection id: %u\n", id);
+        // printf("using existing connection id: %u\n", id);
         auto roce_connection = it->second;
         roce_connection->on_read(input_buf);
 
@@ -293,11 +293,10 @@ void RoceConnector::handle_rr(ibv_wc* wc) {
         else 
         {
             DEBUG_MSG("unexpected RR from unknown ID");
-            printf("connection id: %u\n", id);
+            // printf("connection id: %u\n", id);
         }
         
     }
-         
     
     ScatterGatherElementPtr sge = memory_manager_->get_sge(wc->wr_id);
     post_recv(sge);
@@ -313,10 +312,10 @@ void RoceConnector::handle_sr(ibv_wc* wc) {
     if (it != connection_id_map_.end()) {
         id = it->second;
     } else {
-        puts("error: could not find connection id");
+        DEBUG_MSG("error: could not find connection id");
     }
 
-    printf("handle_sr() for RoCE connection id %u\n", id);
+    // printf("handle_sr() for RoCE connection id %u\n", id);
     
     memory_manager_->make_available(wc->wr_id);
 
@@ -350,7 +349,7 @@ void RoceConnector::handle_control(ibv_wc* wc) {
     uint32_t* tmp_id = (uint32_t*) input_buf->message;
     uint32_t id_to_close = ntohl(*tmp_id);
 
-    printf("request to close connection id %u\n", id_to_close);
+    // printf("request to close connection id %u\n", id_to_close);
 
     auto it = roce_connection_map.find(id_to_close);
 
@@ -393,7 +392,7 @@ Network::Connection::ConnectionBasePtr RoceConnector::connect() {
 
     roce_connection_map[next_connection_id_] = roce_connection;
 
-    printf("new RoCE connection added with id %u\n", next_connection_id_);
+    // printf("new RoCE connection added with id %u\n", next_connection_id_);
 
     return roce_connection; 
 }

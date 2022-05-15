@@ -27,7 +27,7 @@ MemoryRegion::MemoryRegion(AppContextPtr app_ctx, int num_of_sge) : app_ctx_(app
     for (int i = 0; i < num_of_sge; i++) {
 
         ScatterGatherElementPtr sge = create_sge(mem_addr, MSG_SIZE, mr_->lkey);
-
+        
         available_sge_vector.push_back(sge);
         all_sge_map[mem_addr] = sge;
 
@@ -35,14 +35,19 @@ MemoryRegion::MemoryRegion(AppContextPtr app_ctx, int num_of_sge) : app_ctx_(app
 
     }
 
-
     DEBUG_MSG("memory registered.");
-
 
 };
 
 ScatterGatherElementPtr MemoryRegion::get_sge(uint64_t addr) {
-    auto sge_entry = all_sge_map.find(addr);   
+
+    auto sge_entry = all_sge_map.find(addr);
+
+    if(sge_entry == all_sge_map.end()) {
+        puts("addr not found");
+        exit(EXIT_FAILURE);
+    }
+
     return sge_entry->second;
 }
 
@@ -54,45 +59,13 @@ char* MemoryRegion::get_registered_buffer() {
     return buf_;
 }
 
-std::vector<ScatterGatherElementPtr> MemoryRegion::get_available_sge(int num) {
-    
-    std::vector<ScatterGatherElementPtr> sge_vector {};
-
-    if (num > available_sge_vector.size()) {
-        num = available_sge_vector.size();
-    };
-
-    for (int i = 0; i < num; i++) {
-        ScatterGatherElementPtr sge = available_sge_vector.back();
-        available_sge_vector.pop_back();
-        sge_vector.push_back(sge);
-        
-    }
-
-    return sge_vector;
-
-}
-
-std::vector<ScatterGatherElementPtr> MemoryRegion::get_all_available_sge() {
-    
-    std::vector<ScatterGatherElementPtr> sge_vector {};
-
-    for (int i = 0; i < available_sge_vector.size(); i++) {
-        ScatterGatherElementPtr sge = available_sge_vector.back();
-        available_sge_vector.pop_back();
-        sge_vector.push_back(sge);
-        
-    }
-
-    return sge_vector;
-
-}
-
 void MemoryRegion::make_available(uint64_t addr) {
 
-    available_sge_vector.insert(available_sge_vector.begin(), all_sge_map[addr]);
-
-    // printf("sge size after adding is %u\n",available_sge_vector.size());
+    auto s = all_sge_map[addr];
+    
+    m.lock();
+    available_sge_vector.push_back(s);
+    m.unlock();
 
 }
 
@@ -101,11 +74,17 @@ ScatterGatherElementPtr MemoryRegion::get_available_sge() {
 
     // printf("sge size before getting is %u\n",available_sge_vector.size());
 
-    if (available_sge_vector.size() == 0) 
-        return nullptr;
+    m.lock();
 
+    if (available_sge_vector.size() == 0) {
+        m.unlock();
+        return nullptr;
+    }
+    
     ScatterGatherElementPtr sge = available_sge_vector.back();
     available_sge_vector.pop_back();
+
+    m.unlock();
 
     return sge;
 

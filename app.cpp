@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
     std::vector<WorkerPtr> worker_vector;
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 1; i++) {
 
         std::string worker_name = "worker";
         worker_name.append(std::to_string(i));
@@ -90,7 +90,6 @@ int main(int argc, char** argv) {
 
         worker_vector.push_back(worker);
 
-        
     }
 
     DEBUG_MSG("joining worker");

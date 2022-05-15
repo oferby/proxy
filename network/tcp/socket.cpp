@@ -82,7 +82,7 @@ int Socket::connect(Network::addr_info info) {
 
     in_addr * address = (in_addr * )host_->h_addr;
     std::string ip_address = inet_ntoa(* address);
-    printf("server ip: %s\n",ip_address.c_str());
+    // printf("server ip: %s\n",ip_address.c_str());
     server.sin_addr.s_addr = inet_addr(ip_address.c_str());
     
     server.sin_port = htons(info_.port);
@@ -114,7 +114,7 @@ void Socket::on_connect() {
     DEBUG_MSG("got new connection");
     
     pid_t x = syscall(__NR_gettid);
-    printf("pthread id: %u\n", x);
+    // printf("pthread id: %u\n", x);
     
     sockaddr_in client;
     socklen_t slen = sizeof(client);

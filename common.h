@@ -1,7 +1,7 @@
 #ifndef COMMON
 #define COMMON
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG(str) do { puts(str);} while( false )

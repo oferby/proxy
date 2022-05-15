@@ -18,18 +18,20 @@ ScatterGatherElementPtr MemoryManager::get_sge(uint64_t addr) {
     return mr_->get_sge(addr);
 }
 
-int MemoryManager::port_receive() {
+int MemoryManager::post_receive() {
 
-    std::vector<ScatterGatherElementPtr> sge_vector =  mr_->get_available_sge(NUM_OF_TOTAL_SGE / 2);
+    for (int i = 0; i < (NUM_OF_TOTAL_SGE / 2); i++ ) {
+        
+        auto sge = mr_->get_available_sge();
 
-    for (int i = 0; i < sge_vector.size(); i++ ) {
-
-        auto sge = sge_vector.back();
-        sge_vector.pop_back();
+        ibv_sge* ib_sge =  new ibv_sge;
+        ib_sge->addr = sge->get_addr(),
+        ib_sge->length = sge->get_length(),
+        ib_sge->lkey = sge->get_lkey();
 
         ibv_recv_wr rec_wr = {};
-        rec_wr.wr_id = reinterpret_cast<uint64_t>(sge->get().get());
-        rec_wr.sg_list = sge->get().get();
+        rec_wr.wr_id = reinterpret_cast<uint64_t>(sge->get_addr());
+        rec_wr.sg_list = ib_sge;
         rec_wr.num_sge = 1;
 
         ibv_recv_wr* bad_wr;

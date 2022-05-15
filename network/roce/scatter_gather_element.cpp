@@ -4,25 +4,21 @@ namespace Network {
 namespace Roce {
     
 
-ScatterGatherElement::ScatterGatherElement(uint64_t	addr, uint32_t length, uint32_t lkey) {
-    
-    sge_ = std::make_shared<ibv_sge>();
+ScatterGatherElement::ScatterGatherElement(uint64_t	addr, uint32_t length, uint32_t lkey) : 
+    addr_(addr), length_(length), lkey_(lkey)  {}
 
-    sge_->addr = addr;
-    sge_->length = length;
-    sge_->lkey = lkey;
+uint64_t ScatterGatherElement::get_length() {
+    return length_;
+};
 
-}
+uint64_t ScatterGatherElement::get_addr() {
+    return addr_;
+};
 
-IbvSgePtr ScatterGatherElement::get() {
-    return sge_;
-}
+uint64_t ScatterGatherElement::get_lkey() {
+    return lkey_;
+};
 
-uint64_t ScatterGatherElement::get_addr() { return sge_->addr; };
-uint32_t ScatterGatherElement::get_length() { return sge_->length; }; 
-uint32_t ScatterGatherElement::get_lkey() { return sge_->lkey; };
-void ScatterGatherElement::set_lenght(uint32_t lenght) { sge_->length = lenght; }; 
-void ScatterGatherElement::set_addr(uint64_t addr) { sge_->addr = addr; }
 
 
 ScatterGatherElementPtr create_sge(uint64_t	addr, uint32_t length, uint32_t lkey) {

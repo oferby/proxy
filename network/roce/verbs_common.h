@@ -2,6 +2,8 @@
 #define VERBS_COMMON
 
 #include "../../common.h"
+#include <atomic>
+#include <mutex>
 #include <infiniband/verbs.h>
 
 #define PORT_NUM 1
@@ -10,9 +12,9 @@
 #define IB_PORT 1
 #define MSG_SIZE 1024
 #define CQ_SIZE 10
-#define MAX_WR 20
+#define MAX_WR 200
 #define MAX_SGE 1
-#define NUM_OF_TOTAL_SGE 20
+#define NUM_OF_TOTAL_SGE 200
 #define HELLO_MSG_SIZE (sizeof "0000:000000:000000:00000000000000000000000000000000")
 
 #define ROCE_COMMUNICATION_MGR_PORT 9000
@@ -167,22 +169,22 @@ AppContextPtr create_app_context(RoceDevicePtr device, ProtectionDomainPtr pd, C
 
 
 class ScatterGatherElement {
-private:    
-    IbvSgePtr sge_;
+private: 
+    const uint64_t addr_;
+    const uint32_t length_; 
+    const uint32_t lkey_;
 public:
     ScatterGatherElement(uint64_t addr, uint32_t length, uint32_t lkey);
-    IbvSgePtr get();
+    uint64_t get_length();
     uint64_t get_addr();
-    uint32_t get_length(); 
-    uint32_t get_lkey();
-    void set_lenght(uint32_t lenght);
-    void set_addr(uint64_t addr);
+    uint64_t get_lkey();
 };
 using ScatterGatherElementPtr = std::shared_ptr<ScatterGatherElement>;
 ScatterGatherElementPtr create_sge(uint64_t	addr, uint32_t length, uint32_t lkey);
 
 class MemoryRegion {
 private:
+    std::mutex m;
     const size_t size_;
     char* buf_;
     std::vector<ScatterGatherElementPtr> available_sge_vector;
@@ -191,8 +193,6 @@ private:
     AppContextPtr app_ctx_;
 public:
     MemoryRegion(AppContextPtr app_ctx, int num_of_sge);
-    std::vector<ScatterGatherElementPtr> get_available_sge(int num);
-    std::vector<ScatterGatherElementPtr> get_all_available_sge();
     void make_available(uint64_t addr);
     ScatterGatherElementPtr get_available_sge();
     ScatterGatherElementPtr get_sge(uint64_t addr);
@@ -209,7 +209,7 @@ private:
     MemoryRegionPtr mr_;
 public:
     MemoryManager(AppContextPtr app_ctx);
-    int port_receive();
+    int post_receive();
     ScatterGatherElementPtr get_available_sge();
     ScatterGatherElementPtr get_sge(uint64_t addr);
     MemoryRegionPtr get_memory_region();
@@ -260,7 +260,8 @@ RoceConnectorPtr create_roce_connector(std::string dev_name, bool is_server_side
 class RoceVirtualConnection : public Network::Connection::ConnectionBase {
 private:
     uint32_t id_;
-    uint32_t sending_ {0};
+    // uint32_t sending_ {0};
+    std::atomic<uint32_t> sending_ {0};
     bool pending_close_ = false;
     RoceConnectorPtr roce_connector_;
 public:

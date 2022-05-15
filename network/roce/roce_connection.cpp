@@ -7,7 +7,7 @@ namespace Roce {
 RoceVirtualConnection::RoceVirtualConnection(uint32_t id, RoceConnectorPtr roce_connector) : id_(id), roce_connector_(roce_connector) { 
 
     DEBUG_MSG("Roce Virtual Connection created.");
-    printf("Roce connection ID: %u\n", id_);
+    // printf("Roce connection ID: %u\n", id_);
 
 }
 
