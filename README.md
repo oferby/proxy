@@ -24,3 +24,4 @@ simple TCP proxy
 
 ## memlock
     check that we have enough memory using: ulimit -l
+    if needed, edit /etc/security/limits.conf
