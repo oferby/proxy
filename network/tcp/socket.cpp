@@ -45,7 +45,7 @@ int Socket::bind(Network::addr_info info) {
 }
 
 int Socket::listen() {
-    int status = ::listen(sd_, 50);
+    int status = ::listen(sd_, 500);
     if (status != 0) {
         perror("could not listen to socket");
         exit(EXIT_FAILURE);
