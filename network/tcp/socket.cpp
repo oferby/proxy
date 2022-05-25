@@ -63,34 +63,29 @@ int Socket::connect(Network::addr_info info) {
 
     DEBUG_MSG("connecting to server...");
 
-    sockaddr_in server {0};
-    auto addrlen = sizeof(server);
-
     if (info_.ip_addr.size() == 0) {
         printf("could not read server address: %s", info_.ip_addr.c_str());
         exit(EXIT_FAILURE);
     }
 
-    server.sin_family = AF_INET;
-        // inet_aton(info_.ip_addr.c_str(), &server.sin_addr);
-    hostent* host_ = gethostbyname(info_.ip_addr.c_str());
-
-    if (host_ == nullptr) {
-        puts("could not resolve hostname.");
-        exit(EXIT_FAILURE);
-    }
-
-    in_addr * address = (in_addr * )host_->h_addr;
-    std::string ip_address = inet_ntoa(* address);
-    // printf("server ip: %s\n",ip_address.c_str());
-    server.sin_addr.s_addr = inet_addr(ip_address.c_str());
-    
-    server.sin_port = htons(info_.port);
-    
+    addrinfo hints {};
+    addrinfo *result;
     int status;
+
+    hints.ai_family = AF_INET;    
+    hints.ai_socktype = SOCK_STREAM; 
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;        
+
+    status = getaddrinfo(info_.ip_addr.c_str(), info_.port_char, &hints, &result);
+    if (status != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+        exit(EXIT_FAILURE);
+    }    
+
     using namespace std::chrono_literals;
     while(1) {
-        status =  ::connect(sd_, (const sockaddr*) &server, sizeof(server));
+        status =  ::connect(sd_, result->ai_addr, result->ai_addrlen);
         if ( status == -1) {
             perror("could not connect to server! trying ...");
             std::this_thread::sleep_for(2s);

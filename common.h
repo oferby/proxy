@@ -51,6 +51,7 @@ namespace Network {
     struct addr_info {
         std::string ip_addr; 
         int port;
+        const char* port_char;
         transport type;
         std::string dev_name;
         int worker_id;

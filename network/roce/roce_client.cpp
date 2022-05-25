@@ -30,9 +30,14 @@ void RoceClient::setup_pair_connection() {
 
     auto fd = Network::create_socket(nullptr, false);
 
+    int port_ = ROCE_COMMUNICATION_MGR_PORT + target_.worker_id;
+    const char* port_char_ = std::to_string(port_).c_str();
+
     addr_info remote_info = {
         .ip_addr = target_.ip_addr,
-        .port = ROCE_COMMUNICATION_MGR_PORT + target_.worker_id
+        .port = port_,
+        .port_char = port_char_
+
     };
 
     using namespace std::chrono_literals;

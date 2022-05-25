@@ -31,7 +31,8 @@ int main(int argc, char** argv) {
         
         config->source = {
                 .ip_addr = argv[1],
-                .port = atoi(argv[2])
+                .port = atoi(argv[2]),
+                .port_char = argv[2]
         };
 
         config->source.worker_id = i;
@@ -61,7 +62,8 @@ int main(int argc, char** argv) {
 
         config->destination = {
             .ip_addr = argv[4 + arg_shift],
-            .port = atoi(argv[5 + arg_shift])
+            .port = atoi(argv[5 + arg_shift]),
+            .port_char = argv[5 + arg_shift]
         };
 
         config->destination.worker_id = i;
