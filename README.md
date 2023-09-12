@@ -2,6 +2,10 @@
 
 simple TCP proxy
 
+### install libevent
+sudo apt install libevent-dev
+
+
 ### compile
     g++ *.cpp *.h tcp/*.cpp tcp/*.h network/*.h network/*.cpp proxy/*.h proxy/*.cpp  -o bin/proxy -levent -lpthread -levent_pthreads
 
